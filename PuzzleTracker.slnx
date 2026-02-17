@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="puzzletracker.client/puzzletracker.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="PuzzleTracker.Server/PuzzleTracker.Server.csproj" />
+</Solution>

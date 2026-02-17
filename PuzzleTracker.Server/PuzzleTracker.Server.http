@@ -1,0 +1,6 @@
+@PuzzleTracker.Server_HostAddress = http://localhost:5081
+
+GET {{PuzzleTracker.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
