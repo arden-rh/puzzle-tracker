@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PuzzleTracker.Server.Data;
 
@@ -11,9 +12,11 @@ using PuzzleTracker.Server.Data;
 namespace PuzzleTracker.Server.Migrations
 {
     [DbContext(typeof(PuzzleTrackerContext))]
-    partial class PuzzleTrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20260220103033_AddApplicationUserAndPuzzles")]
+    partial class AddApplicationUserAndPuzzles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -277,6 +280,9 @@ namespace PuzzleTracker.Server.Migrations
                     b.Property<int>("BrandId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("BrandId1")
+                        .HasColumnType("int");
+
                     b.Property<int?>("IllustratorId")
                         .HasColumnType("int");
 
@@ -311,6 +317,8 @@ namespace PuzzleTracker.Server.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BrandId");
+
+                    b.HasIndex("BrandId1");
 
                     b.HasIndex("IllustratorId");
 
@@ -481,10 +489,14 @@ namespace PuzzleTracker.Server.Migrations
             modelBuilder.Entity("PuzzleTracker.Server.Models.PuzzleBase", b =>
                 {
                     b.HasOne("PuzzleTracker.Server.Models.Brand", "Brand")
-                        .WithMany("Puzzles")
+                        .WithMany()
                         .HasForeignKey("BrandId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("PuzzleTracker.Server.Models.Brand", null)
+                        .WithMany("Puzzles")
+                        .HasForeignKey("BrandId1");
 
                     b.HasOne("PuzzleTracker.Server.Models.Illustrator", "Illustrator")
                         .WithMany("Puzzles")

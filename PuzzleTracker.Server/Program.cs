@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PuzzleTracker.Server.Data;
+using PuzzleTracker.Server.Models;
+using System.Security.Claims;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,7 +14,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<PuzzleTrackerContext>(options =>
     options.UseSqlServer(connectionString));
 
-builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
+builder.Services.AddAuthorization();
+
+builder.Services.AddIdentityApiEndpoints<ApplicationUser>(options =>
 {
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
@@ -22,8 +26,11 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
     // options.Password.RequiredUniqueChars = 1;
 }).AddEntityFrameworkStores<PuzzleTrackerContext>();
 
-builder.Services.AddControllers();
-builder.Services.AddAuthorization();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    // This adds a "$type" property to the JSON so React knows which subclass it's looking at
+    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+});
 
 builder.Services.AddCors(options =>
 {
@@ -61,7 +68,20 @@ app.UseCors("AllowClient");
 
 app.UseAuthorization();
 
-app.MapIdentityApi<IdentityUser>().RequireCors("AllowClient");
+app.MapIdentityApi<ApplicationUser>().RequireCors("AllowClient");
+
+app.MapPost("/logout", async (SignInManager<ApplicationUser> signInManager) =>
+{
+    await signInManager.SignOutAsync();
+    return Results.Ok();
+}).RequireCors("AllowClient").RequireAuthorization();
+
+// Allow the client to verify that the user is authenticated and get their email claim if they are.
+app.MapGet("/pingauth", (ClaimsPrincipal user) =>
+{
+    var email = user.FindFirstValue(ClaimTypes.Email) ?? "No email claim";
+    return Results.Json(new { Email = email });
+}).RequireCors("AllowClient").RequireAuthorization();
 
 app.MapControllers();
 
