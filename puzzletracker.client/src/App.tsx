@@ -1,11 +1,19 @@
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
-import Login from './components/Login';
+import Login from './pages/Login';
+import Home from './pages/Home';
+import Profile from './pages/Profile';
 
-function App() {
+const App = () => {
     return (
-        <div>
-            <Login apiUrl="https://localhost:7110" />
-        </div>
+        <BrowserRouter>
+            <Routes>
+                {/* <Route path="/puzzles" element={<Puzzles />} /> */}
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/login" element={<Login apiUrl="https://localhost:7110" />} />
+                <Route path="/" element={<Home />} />
+            </Routes>
+        </BrowserRouter>
     );
 }
 
