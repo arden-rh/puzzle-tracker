@@ -48,6 +48,16 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Seed database in development
+if (app.Environment.IsDevelopment())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<PuzzleTrackerContext>();
+        await DatabaseSeeder.SeedAsync(context);
+    }
+}
+
 // app.UseDefaultFiles();
 // app.MapStaticAssets();
 
@@ -64,11 +74,29 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/error");
+    app.UseHsts();
+}
+
 app.UseCors("AllowClient");
 
 app.UseAuthorization();
 
 app.MapIdentityApi<ApplicationUser>().RequireCors("AllowClient");
+
+app.Map("/error", (HttpContext context) =>
+{
+    return Results.Problem(
+        title: "An unexpected error occurred.",
+        statusCode: StatusCodes.Status500InternalServerError
+    );
+});
 
 app.MapPost("/logout", async (SignInManager<ApplicationUser> signInManager) =>
 {
@@ -84,7 +112,5 @@ app.MapGet("/pingauth", (ClaimsPrincipal user) =>
 }).RequireCors("AllowClient").RequireAuthorization();
 
 app.MapControllers();
-
-// app.MapFallbackToFile("/index.html");
 
 app.Run();

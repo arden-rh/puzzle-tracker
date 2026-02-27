@@ -29,7 +29,7 @@ namespace PuzzleTracker.Server.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
+
             modelBuilder.Entity<PuzzleBase>()
                 .HasDiscriminator<string>("PuzzleType")
                 .HasValue<OfficialPuzzle>("Official")
