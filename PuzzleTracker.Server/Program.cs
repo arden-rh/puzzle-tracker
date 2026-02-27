@@ -16,15 +16,46 @@ builder.Services.AddDbContext<PuzzleTrackerContext>(options =>
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddIdentityApiEndpoints<ApplicationUser>(options =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
-    // options.Password.RequireNonAlphanumeric = true;
     options.Password.RequireUppercase = true;
     options.Password.RequiredLength = 8;
-    // options.Password.RequiredUniqueChars = 1;
-}).AddEntityFrameworkStores<PuzzleTrackerContext>();
+    options.SignIn.RequireConfirmedAccount = false;
+})
+.AddEntityFrameworkStores<PuzzleTrackerContext>()
+.AddDefaultTokenProviders();
+
+// Configure cookie authentication to not redirect on API calls
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Events.OnRedirectToLogin = context =>
+    {
+        // Only return 401 for API requests
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsJsonAsync(new { error = "Forbidden" });
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -74,6 +105,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Routing must be before CORS in .NET 6+
+app.UseRouting();
+
+// CORS must be after routing and before authentication!
+app.UseCors("AllowClient");
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -84,11 +121,8 @@ else
     app.UseHsts();
 }
 
-app.UseCors("AllowClient");
-
+app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapIdentityApi<ApplicationUser>().RequireCors("AllowClient");
 
 app.Map("/error", (HttpContext context) =>
 {
@@ -111,6 +145,7 @@ app.MapGet("/pingauth", (ClaimsPrincipal user) =>
     return Results.Json(new { Email = email });
 }).RequireCors("AllowClient").RequireAuthorization();
 
-app.MapControllers();
+// Map controller endpoints
+app.MapControllers().RequireCors("AllowClient");
 
 app.Run();

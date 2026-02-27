@@ -1,6 +1,6 @@
 import type { Brand, Illustrator, PuzzleSeries } from "./puzzle-properties.types";
 
-type PuzzleDiscriminator = "Official" | "JVH" | "UserCustom";
+export type PuzzleDiscriminator = "Official" | "JVH" | "UserCustom";
 
 // Shared base properties
 export interface PuzzleBase {
@@ -39,3 +39,4 @@ export interface UserCustomPuzzle extends PuzzleBase {
 }
 
 export type Puzzle = OfficialPuzzle | JVHPuzzle | UserCustomPuzzle; // Discriminated Union
+
