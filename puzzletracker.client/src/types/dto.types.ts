@@ -21,6 +21,10 @@ export interface PuzzleDto {
     createdByUserId?: string; // For UserCustom
     dateAdded?: string; // For UserCustom
     isPublic?: boolean; // For UserCustom
+
+    // Collection status (calculated server-side for current user)
+    isInUserCollection?: boolean;
+    isCompletedByUser?: boolean;
 }
 
 export interface UserPuzzleDto extends PuzzleDto {

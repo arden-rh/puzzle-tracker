@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,14 +11,15 @@ namespace PuzzleTracker.Server.Controllers
 {
 
     [Authorize]
+    [Route("api/user-puzzles")]
     [ApiController]
-    [Route("api/[controller]")]
+    [EnableCors("AllowClient")]
     public class UserPuzzleController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly PuzzleTrackerContext _context;
 
-        public UserPuzzleController(UserManager<IdentityUser> userManager, PuzzleTrackerContext context)
+        public UserPuzzleController(UserManager<ApplicationUser> userManager, PuzzleTrackerContext context)
         {
             _userManager = userManager;
             _context = context;
@@ -70,7 +72,7 @@ namespace PuzzleTracker.Server.Controllers
         }
 
         // READ AND TEST THIS
-        [HttpPost("/add/{puzzleId}")]
+        [HttpPost("add/{puzzleId}")]
         public async Task<ActionResult> AddToCollection(int puzzleId)
         {
             var userId = _userManager.GetUserId(User);
@@ -99,7 +101,7 @@ namespace PuzzleTracker.Server.Controllers
         }
 
         // READ AND TEST THIS
-        [HttpPost("/update/{userPuzzleId}")]
+        [HttpPost("update/{userPuzzleId}")]
         public async Task<ActionResult> UpdateCollectionEntry(int userPuzzleId, [FromBody] UserPuzzleDto updatedData)
         {
             var userId = _userManager.GetUserId(User);
@@ -117,7 +119,7 @@ namespace PuzzleTracker.Server.Controllers
             return Ok("Collection entry updated.");
         }
 
-        [HttpPost("/complete/{userPuzzleId}")]
+        [HttpPost("complete/{userPuzzleId}")]
         public async Task<ActionResult> MarkAsCompleted(int userPuzzleId)
         {
             var userId = _userManager.GetUserId(User);

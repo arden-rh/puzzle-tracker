@@ -1,5 +1,5 @@
 import { Navigate, useLocation, Outlet } from "react-router-dom";
-import { useUser } from "../hooks/useUser";
+import useUser from "../hooks/useUser";
 
 
 const ProtectedRoute = () => {

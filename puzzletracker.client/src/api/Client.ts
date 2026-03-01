@@ -1,7 +1,7 @@
 import axios, { type AxiosResponse } from 'axios';
 import type { UserPuzzleDto as UserPuzzleDtoFromApi, PuzzleDto as PuzzleDtoFromApi, UserProfileDto } from '../types/dto.types';
 
-axios.defaults.baseURL = 'https://localhost:7110/api';
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:7110/api';
 
 axios.defaults.withCredentials = true;
 
@@ -42,19 +42,31 @@ const Puzzles = {
 };
 
 const UserPuzzles = {
-    getAll: () => requests.get<UserPuzzleDtoFromApi[]>('/userpuzzles/my-collection'),
-    getById: (puzzleId: number) => requests.get<UserPuzzleDtoFromApi>(`/userpuzzles/${puzzleId}`),
-    addToCollection: (puzzleId: number) => requests.post(`/userpuzzles/add/${puzzleId}`, {}),
-    markAsCompleted: (puzzleId: number) => requests.post(`/userpuzzles/complete/${puzzleId}`, {}),
-    create: (puzzle: UserPuzzleDtoFromApi) => requests.post('/userpuzzles', puzzle),
-    update: (puzzle: UserPuzzleDtoFromApi) => requests.put(`/userpuzzles/${puzzle.userPuzzleId}`, puzzle),
-    delete: (puzzleId: number) => requests.delete(`/userpuzzles/${puzzleId}`)
+    getAll: () => requests.get<UserPuzzleDtoFromApi[]>('/user-puzzles/my-collection'),
+    getById: (puzzleId: number) => requests.get<UserPuzzleDtoFromApi>(`/user-puzzles/${puzzleId}`),
+    addToCollection: (puzzleId: number) => requests.post(`/user-puzzles/add/${puzzleId}`, {}),
+    markAsCompleted: (puzzleId: number) => requests.post(`/user-puzzles/complete/${puzzleId}`, {}),
+    create: (puzzle: UserPuzzleDtoFromApi) => requests.post('/user-puzzles', puzzle),
+    update: (puzzle: UserPuzzleDtoFromApi) => requests.put(`/user-puzzles/${puzzle.userPuzzleId}`, puzzle),
+    delete: (puzzleId: number) => requests.delete(`/user-puzzles/${puzzleId}`)
+};
+
+const Illustrators = {
+    getAll: () => requests.get<string[]>('/illustrators'),
+    getById: (illustratorId: number) => requests.get<string>(`/illustrators/${illustratorId}`)
+};
+
+const Brands = {
+    getAll: () => requests.get<string[]>('/brands'),
+    getById: (brandId: number) => requests.get<string>(`/brands/${brandId}`)
 };
 
 const Client = {
     Account,
     Puzzles,
-    UserPuzzles
+    UserPuzzles,
+    Illustrators,
+    Brands
 };
 
 export default Client;
