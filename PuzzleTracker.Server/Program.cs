@@ -1,9 +1,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 using PuzzleTracker.Server.Data;
 using PuzzleTracker.Server.Models;
+using PuzzleTracker.Server.Services;
 using System.Security.Claims;
 
+// Set EPPlus license for non-commercial use (modern API)
+ExcelPackage.License.SetNonCommercialPersonal("PuzzleTracker");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +17,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<PuzzleTrackerContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddScoped<ExcelImportService>();
 
 builder.Services.AddAuthorization();
 

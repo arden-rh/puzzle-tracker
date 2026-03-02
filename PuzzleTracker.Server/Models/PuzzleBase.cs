@@ -24,14 +24,15 @@
 
     public class OfficialPuzzle : PuzzleBase
     {
-        public string Publisher { get; set; }
-        public string ReleaseDate { get; set; }
-        public string Manufacturer { get; set; }
+        public string? Publisher { get; set; }
+        public string? ReleaseDate { get; set; }
+        public string? Manufacturer { get; set; }
     }
 
     public class  JVHPuzzle : OfficialPuzzle
     {
         public bool IsComboPack { get; set; } = false;
+        public string? ComboPackDetails { get; set; }
     }
 
     public class UserCustomPuzzle : PuzzleBase
