@@ -6,6 +6,7 @@ import useUser from "../hooks/useUser";
 // Components
 import PuzzleGrid from "../components/PuzzleGrid";
 import PuzzleList from "../components/PuzzleList";
+import SortFilterBox from "../components/SortFilerBox";
 
 const GlobalLibrary = () => {
     const { user } = useUser();
@@ -34,22 +35,26 @@ const GlobalLibrary = () => {
     if (error) return <div>Error loading puzzles: {error}</div>;
 
     return (
-        <div className="">
-            <h2>Global Puzzle Library</h2>
-            <div>
+        <div className="flex flex-col gap-4">
+            <h2 className="text-2xl font-bold">Global Puzzle Library</h2>
+            <div className="w-full flex gap-3">
                 <button
-                    className={`px-4 py-2 rounded ${!listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                    className={`py-1 p-2 text-sm rounded shadow ${!listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
                     onClick={() => setListView(false)}
                 >
                     Grid View
                 </button>
                 <button
-                    className={`px-4 py-2 rounded ${listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                    className={`py-1 p-2 text-sm rounded shadow ${listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
                     onClick={() => setListView(true)}
                 >
                     List View
                 </button>
+                <button className="py-1 p-2 text-sm rounded shadow bg-gray-200 text-gray-700">
+                    Sort & Filter
+                </button>
             </div>
+            <SortFilterBox />
             {listView ? (
                 <PuzzleList puzzles={puzzles} loading={loading} error={error} onMarkCompleted={handleMarkCompleted} onUnmarkCompleted={handleAddToCollection} actionLoading={actionLoading} />
             ) : (

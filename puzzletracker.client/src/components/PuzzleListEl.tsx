@@ -13,13 +13,15 @@ const PuzzleListEl: React.FC<PuzzleListElProps> = ({
     onUnmarkCompleted,
     actionLoading
 }) => {
-    return (
-            
-        <div className="w-full p-4 shadow-md bg-white flex flex-col justify-between">
-            <h3 className="text-center">{puzzle.nameEnglish}</h3>
+    return (  
+        <div className="relative w-full p-3 shadow bg-white flex flex-col justify-between">
+            <p className="text-sm bg-blue-800 p-1 pr-2 text-white font-medium absolute top-2 right-2"><span className="grayscale">🧩</span>{puzzle.numberOfPieces}</p>
+            <h3 className="text-black font-medium max-w-[65%]">{puzzle.nameEnglish}</h3>
+            {puzzle.puzzleType == "JVH" && <h4 className="text-sm text-gray-600">{puzzle.nameLocal}</h4>}
             <div>
-                <p className="text-sm text-gray-600">{puzzle.brandName}</p>
-                <p className="text-sm text-gray-600">{puzzle.numberOfPieces} pieces</p>
+                <p className="text-sm text-black font-medium">{puzzle.brandName}</p>
+                {puzzle.seriesName && <p className="text-sm text-gray-600"><span className="text-black">Series:</span> {puzzle.seriesName} </p>}
+                {puzzle.productNumber && <p className="text-sm text-gray-600"><span className="text-black">Product number:</span> {puzzle.productNumber} </p>}
             </div>
             <div>
                 <button

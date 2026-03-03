@@ -10,7 +10,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 		<div className="layout h-full min-h-screen min-w-full flex flex-col bg-blue-300">
 			<NavBar />
 
-			<main className="layout__main">{children}</main>
+			<main className="layout__main p-4">{children}</main>
 		</div>
 	);
 };
