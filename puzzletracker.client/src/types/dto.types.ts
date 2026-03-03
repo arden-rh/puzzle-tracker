@@ -45,3 +45,24 @@ export interface UserProfile {
     profilePicUrl?: string;
     bio?: string;
 }
+
+export interface Brand {
+    id: number;
+    name: string;
+    websiteUrl?: string;
+    logoImgSrc?: string;
+    numberOfPuzzles: number;
+}
+
+export interface Illustrator {
+    id: number;
+    name: string;
+    numberOfPuzzles: number;
+}
+
+export interface Series {
+    id: number;
+    name: string;
+    brandName: string;
+    numberOfPuzzles: number;
+}

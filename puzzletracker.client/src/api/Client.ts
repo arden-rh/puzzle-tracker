@@ -1,5 +1,5 @@
 import axios, { type AxiosResponse } from 'axios';
-import type { UserPuzzle, Puzzle, UserProfile } from '../types/dto.types';
+import type { UserPuzzle, Puzzle, UserProfile, Series, Brand, Illustrator } from '../types/dto.types';
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:7110/api';
 
@@ -52,13 +52,18 @@ const UserPuzzles = {
 };
 
 const Illustrators = {
-    getAll: () => requests.get<string[]>('/illustrators'),
-    getById: (illustratorId: number) => requests.get<string>(`/illustrators/${illustratorId}`)
+    getAll: () => requests.get<Illustrator[]>('/illustrators'),
+    getById: (illustratorId: number) => requests.get<Illustrator>(`/illustrators/${illustratorId}`)
 };
 
 const Brands = {
-    getAll: () => requests.get<string[]>('/brands'),
-    getById: (brandId: number) => requests.get<string>(`/brands/${brandId}`)
+    getAll: () => requests.get<Brand[]>('/brands'),
+    getById: (brandId: number) => requests.get<Brand>(`/brands/${brandId}`)
+};
+
+const Series = {
+    getAll: () => requests.get<Series[]>('/series'),
+    getById: (seriesId: number) => requests.get<Series>(`/series/${seriesId}`)
 };
 
 const Client = {
@@ -66,7 +71,8 @@ const Client = {
     Puzzles,
     UserPuzzles,
     Illustrators,
-    Brands
+    Brands,
+    Series
 };
 
 export default Client;
