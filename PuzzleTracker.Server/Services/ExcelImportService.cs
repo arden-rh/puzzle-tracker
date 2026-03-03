@@ -26,7 +26,10 @@ namespace PuzzleTracker.Server.Services
                 result.BrandsImported = await ImportBrands(package.Workbook.Worksheets["Brands"]);
                 result.IllustratorsImported = await ImportIllustrators(package.Workbook.Worksheets["Illustrators"]);
                 result.SeriesImported = await ImportSeries(package.Workbook.Worksheets["Series"]);
-                result.PuzzlesImported = await ImportPuzzles(package.Workbook.Worksheets["Puzzles"]);
+
+                var puzzleResult = await ImportPuzzles(package.Workbook.Worksheets["Puzzles"]);
+                result.PuzzlesImported = puzzleResult.ImportedCount;
+                result.SkippedRows = puzzleResult.SkippedRows;
 
                 result.Success = true;
                 result.Message = "Import completed successfully!";
@@ -66,10 +69,20 @@ namespace PuzzleTracker.Server.Services
 
             if (brands.Any())
             {
-                await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Brands ON");
-                await _context.Brands.AddRangeAsync(brands);
-                await _context.SaveChangesAsync();
-                await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Brands OFF");
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Brands ON");
+                    await _context.Brands.AddRangeAsync(brands);
+                    await _context.SaveChangesAsync();
+                    await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Brands OFF");
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
             }
 
             return brands.Count;
@@ -98,10 +111,20 @@ namespace PuzzleTracker.Server.Services
 
             if (illustrators.Any())
             {
-                await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Illustrators ON");
-                await _context.Illustrators.AddRangeAsync(illustrators);
-                await _context.SaveChangesAsync();
-                await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Illustrators OFF");
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Illustrators ON");
+                    await _context.Illustrators.AddRangeAsync(illustrators);
+                    await _context.SaveChangesAsync();
+                    await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Illustrators OFF");
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
             }
 
             return illustrators.Count;
@@ -132,26 +155,52 @@ namespace PuzzleTracker.Server.Services
 
             if (seriesList.Any())
             {
-                await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Series ON");
-                await _context.Series.AddRangeAsync(seriesList);
-                await _context.SaveChangesAsync();
-                await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Series OFF");
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Series ON");
+                    await _context.Series.AddRangeAsync(seriesList);
+                    await _context.SaveChangesAsync();
+                    await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Series OFF");
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
             }
 
             return seriesList.Count;
         }
 
-        private async Task<int> ImportPuzzles(ExcelWorksheet worksheet)
+        private async Task<PuzzleImportResult> ImportPuzzles(ExcelWorksheet worksheet)
         {
-            if (worksheet == null) return 0;
+            var importResult = new PuzzleImportResult();
+
+            if (worksheet == null)
+            {
+                importResult.SkippedRows.Add("Puzzles sheet not found in Excel file");
+                return importResult;
+            }
 
             var puzzles = new List<PuzzleBase>();
             int rowCount = worksheet.Dimension?.Rows ?? 0;
 
+            if (rowCount < 2)
+            {
+                importResult.SkippedRows.Add("No data rows found in Puzzles sheet");
+                return importResult;
+            }
+
             for (int row = 2; row <= rowCount; row++)
             {
                 var puzzleType = GetStringValue(worksheet, row, 1);
-                if (string.IsNullOrWhiteSpace(puzzleType)) continue;
+                if (string.IsNullOrWhiteSpace(puzzleType))
+                {
+                    importResult.SkippedRows.Add($"Row {row}: Empty PuzzleType");
+                    continue;
+                }
 
                 // Common properties
                 var id = GetIntValue(worksheet, row, 2);
@@ -166,7 +215,17 @@ namespace PuzzleTracker.Server.Services
                 var seriesId = GetNullableIntValue(worksheet, row, 11);
                 var illustratorId = GetNullableIntValue(worksheet, row, 12);
 
-                if (string.IsNullOrWhiteSpace(nameEnglish) || brandId == 0) continue;
+                if (string.IsNullOrWhiteSpace(nameEnglish))
+                {
+                    importResult.SkippedRows.Add($"Row {row}: Empty NameEnglish");
+                    continue;
+                }
+
+                if (brandId == 0)
+                {
+                    importResult.SkippedRows.Add($"Row {row}: Missing or invalid BrandId");
+                    continue;
+                }
 
                 // Type-specific properties
                 var publisher = GetStringValue(worksheet, row, 13);
@@ -231,21 +290,35 @@ namespace PuzzleTracker.Server.Services
                     _ => null
                 };
 
-                if (puzzle != null)
+                if (puzzle == null)
                 {
-                    puzzles.Add(puzzle);
+                    importResult.SkippedRows.Add($"Row {row}: Invalid PuzzleType '{puzzleType}' (must be 'Official', 'JVH', or 'UserCustom')");
+                    continue;
                 }
+
+                puzzles.Add(puzzle);
             }
 
             if (puzzles.Any())
             {
-                await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Puzzles ON");
-                await _context.Puzzles.AddRangeAsync(puzzles);
-                await _context.SaveChangesAsync();
-                await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Puzzles OFF");
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Puzzles ON");
+                    await _context.Puzzles.AddRangeAsync(puzzles);
+                    await _context.SaveChangesAsync();
+                    await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Puzzles OFF");
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
             }
 
-            return puzzles.Count;
+            importResult.ImportedCount = puzzles.Count;
+            return importResult;
         }
 
         #region Helper Methods
@@ -287,6 +360,12 @@ namespace PuzzleTracker.Server.Services
         #endregion
     }
 
+    public class PuzzleImportResult
+    {
+        public int ImportedCount { get; set; }
+        public List<string> SkippedRows { get; set; } = new List<string>();
+    }
+
     public class ImportResult
     {
         public bool Success { get; set; }
@@ -296,16 +375,24 @@ namespace PuzzleTracker.Server.Services
         public int IllustratorsImported { get; set; }
         public int SeriesImported { get; set; }
         public int PuzzlesImported { get; set; }
+        public List<string> SkippedRows { get; set; } = new List<string>();
 
         public override string ToString()
         {
             if (!Success) return $"❌ {Message}\n{ErrorDetails}";
-            
-            return $@"✅ {Message}
+
+            var message = $@"✅ {Message}
 - Brands: {BrandsImported}
 - Illustrators: {IllustratorsImported}
 - Series: {SeriesImported}
 - Puzzles: {PuzzlesImported}";
+
+            if (SkippedRows.Any())
+            {
+                message += $"\n\n⚠️ Skipped {SkippedRows.Count} rows:\n" + string.Join("\n", SkippedRows);
+            }
+
+            return message;
         }
     }
 }

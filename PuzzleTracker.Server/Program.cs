@@ -73,7 +73,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowClient", policy =>
     {
-        policy.WithOrigins("https://localhost:63257")
+        policy.WithOrigins(
+                "https://localhost:63257",  // React client
+                "https://localhost:7110",   // API HTTPS
+                "http://localhost:5081"     // API HTTP (for local testing)
+              )
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -85,15 +89,15 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Seed database in development
-if (app.Environment.IsDevelopment())
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var context = scope.ServiceProvider.GetRequiredService<PuzzleTrackerContext>();
-        await DatabaseSeeder.SeedAsync(context);
-    }
-}
+// Seed database in development - DISABLED FOR EXCEL IMPORT
+// if (app.Environment.IsDevelopment())
+// {
+//     using (var scope = app.Services.CreateScope())
+//     {
+//         var context = scope.ServiceProvider.GetRequiredService<PuzzleTrackerContext>();
+//         await DatabaseSeeder.SeedAsync(context);
+//     }
+// }
 
 // app.UseDefaultFiles();
 // app.MapStaticAssets();

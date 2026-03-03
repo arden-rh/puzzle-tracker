@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PuzzleTracker.Server.Data;
 using PuzzleTracker.Server.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace PuzzleTracker.Server.Controllers
 {
@@ -10,11 +12,57 @@ namespace PuzzleTracker.Server.Controllers
     {
         private readonly ExcelImportService _importService;
         private readonly IWebHostEnvironment _environment;
+        private readonly PuzzleTrackerContext _context;
 
-        public ImportController(ExcelImportService importService, IWebHostEnvironment environment)
+        public ImportController(ExcelImportService importService, IWebHostEnvironment environment, PuzzleTrackerContext context)
         {
             _importService = importService;
             _environment = environment;
+            _context = context;
+        }
+
+        [HttpDelete("clear-data")]
+        public async Task<IActionResult> ClearData()
+        {
+            try
+            {
+                // Delete in reverse order of dependencies
+                var userPuzzlesDeleted = await _context.UserPuzzles.ExecuteDeleteAsync();
+                var puzzlesDeleted = await _context.Puzzles.ExecuteDeleteAsync();
+                var seriesDeleted = await _context.Series.ExecuteDeleteAsync();
+                var illustratorsDeleted = await _context.Illustrators.ExecuteDeleteAsync();
+                var brandsDeleted = await _context.Brands.ExecuteDeleteAsync();
+
+                // Reset identity seeds
+                await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('UserPuzzles', RESEED, 0)");
+                await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Puzzles', RESEED, 0)");
+                await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Series', RESEED, 0)");
+                await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Illustrators', RESEED, 0)");
+                await _context.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Brands', RESEED, 0)");
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Database cleared successfully",
+                    deleted = new
+                    {
+                        userPuzzles = userPuzzlesDeleted,
+                        puzzles = puzzlesDeleted,
+                        series = seriesDeleted,
+                        illustrators = illustratorsDeleted,
+                        brands = brandsDeleted
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Failed to clear database",
+                    error = ex.Message
+                });
+            }
         }
 
         [HttpPost("upload-excel")]
