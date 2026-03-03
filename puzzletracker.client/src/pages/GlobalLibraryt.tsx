@@ -1,12 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import usePuzzles from "../hooks/usePuzzles";
 import useUserPuzzles from "../hooks/useUserPuzzles";
 import useUser from "../hooks/useUser";
+
+// Components
+import PuzzleGrid from "../components/PuzzleGrid";
+import PuzzleList from "../components/PuzzleList";
 
 const GlobalLibrary = () => {
     const { user } = useUser();
     const { puzzles, loading, error, getAllPuzzles } = usePuzzles();
     const { addPuzzleToCollection, markPuzzleAsCompleted, loading: actionLoading } = useUserPuzzles();
+
+    const [listView, setListView] = useState(false);
 
     useEffect(() => {
         getAllPuzzles();
@@ -28,69 +34,27 @@ const GlobalLibrary = () => {
     if (error) return <div>Error loading puzzles: {error}</div>;
 
     return (
-        <div style={{ padding: '20px' }}>
-            <h1>Global Puzzle Library</h1>
-            <div style={{ display: 'grid', gap: '20px', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-                {puzzles.map((puzzle) => (
-                    <div
-                        key={puzzle.id}
-                        style={{
-                            border: '1px solid #ccc',
-                            padding: '15px',
-                            borderRadius: '8px',
-                            backgroundColor: puzzle.isInUserCollection ? 'blue' : 'grey'
-                        }}
-                    >
-                        <h3>{puzzle.nameEnglish}</h3>
-                        <p><strong>Pieces:</strong> {puzzle.numberOfPieces}</p>
-                        <p><strong>Brand:</strong> {puzzle.brandName}</p>
-                        {puzzle.seriesName && <p><strong>Series:</strong> {puzzle.seriesName}</p>}
-
-                        {user && (
-                            <div style={{ marginTop: '10px', display: 'flex', gap: '10px', flexDirection: 'column' }}>
-                                {puzzle.isInUserCollection && <span style={{ color: 'green', fontWeight: 'bold' }}>✓ In Your Collection</span>}
-
-                                <button
-                                    onClick={() => handleMarkCompleted(puzzle.id)}
-                                    disabled={actionLoading}
-                                    style={{
-                                        padding: '8px',
-                                        backgroundColor: '#28a745',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: actionLoading ? 'not-allowed' : 'pointer'
-                                    }}
-                                >
-                                    {actionLoading ? 'Processing...' : 'Mark as Completed'}
-                                </button>
-
-                                <button
-                                    onClick={() => handleAddToCollection(puzzle.id)}
-                                    disabled={actionLoading}
-                                    style={{
-                                        padding: '8px',
-                                        backgroundColor: '#007bff',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: actionLoading ? 'not-allowed' : 'pointer'
-                                    }}
-                                >
-                                    {actionLoading ? 'Adding...' : 'Add to Collection'}
-                                </button>
-
-                            </div>
-                        )}
-
-                        {!user && (
-                            <p style={{ color: '#666', fontSize: '14px', marginTop: '10px' }}>
-                                <a href="/login">Login</a> to add to your collection
-                            </p>
-                        )}
-                    </div>
-                ))}
+        <div className="">
+            <h2>Global Puzzle Library</h2>
+            <div>
+                <button
+                    className={`px-4 py-2 rounded ${!listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                    onClick={() => setListView(false)}
+                >
+                    Grid View
+                </button>
+                <button
+                    className={`px-4 py-2 rounded ${listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                    onClick={() => setListView(true)}
+                >
+                    List View
+                </button>
             </div>
+            {listView ? (
+                <PuzzleList puzzles={puzzles} loading={loading} error={error} onMarkCompleted={handleMarkCompleted} onUnmarkCompleted={handleAddToCollection} actionLoading={actionLoading} />
+            ) : (
+                <PuzzleGrid puzzles={puzzles} loading={loading} error={error} onMarkCompleted={handleMarkCompleted} onUnmarkCompleted={handleAddToCollection} actionLoading={actionLoading} />
+            )}
         </div>
     );
 }

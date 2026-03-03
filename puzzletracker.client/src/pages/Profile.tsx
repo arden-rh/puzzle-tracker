@@ -19,7 +19,7 @@ const Profile = () => {
     }
 
     return (
-        <div style={{ maxWidth: '600px', margin: '50px auto', padding: '20px' }}>
+        <div >
             <h1>Profile Page</h1>
             <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
                 <h2>Welcome, {user.displayName || user.name}!</h2>
