@@ -1,6 +1,6 @@
-import type { PuzzleDiscriminator } from "./puzzle.types";
+export type PuzzleDiscriminator = "Official" | "JVH" | "UserCustom";
 
-export interface PuzzleDto {
+export interface Puzzle {
     id: number;
     puzzleType: PuzzleDiscriminator;
     nameEnglish: string;
@@ -27,7 +27,7 @@ export interface PuzzleDto {
     isCompletedByUser?: boolean;
 }
 
-export interface UserPuzzleDto extends PuzzleDto {
+export interface UserPuzzle extends Puzzle {
     userPuzzleId: number;
     isOwned: boolean;
     isCompleted: boolean;
@@ -35,7 +35,7 @@ export interface UserPuzzleDto extends PuzzleDto {
     lastCompletedDate?: string;
 }
 
-export interface UserProfileDto {
+export interface UserProfile {
     id: string;
     name: string;
     email: string;
