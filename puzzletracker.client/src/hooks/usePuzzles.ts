@@ -1,12 +1,12 @@
 import { useState } from "react";
 import Client from "../api/Client";
-import type { PuzzleDto as PuzzleDtoFromApi } from "../types/dto.types";
+import type { Puzzle } from "../types/dto.types";
 
 const usePuzzles = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [puzzles, setPuzzles] = useState<PuzzleDtoFromApi[]>([]);
-    const [selectedPuzzle, setSelectedPuzzle] = useState<PuzzleDtoFromApi | null>(null);
+    const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
+    const [selectedPuzzle, setSelectedPuzzle] = useState<Puzzle | null>(null);
 
     const getAllPuzzles = async () => {
         setLoading(true);

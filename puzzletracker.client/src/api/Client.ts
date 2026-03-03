@@ -1,5 +1,5 @@
 import axios, { type AxiosResponse } from 'axios';
-import type { UserPuzzleDto as UserPuzzleDtoFromApi, PuzzleDto as PuzzleDtoFromApi, UserProfileDto } from '../types/dto.types';
+import type { UserPuzzle, Puzzle, UserProfile } from '../types/dto.types';
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:7110/api';
 
@@ -31,23 +31,23 @@ const requests = {
 };
 
 const Account = {
-    currentUserProfile: () => requests.get<UserProfileDto>('/account/profile'),
+    currentUserProfile: () => requests.get<UserProfile>('/account/profile'),
     login: (email: string, password: string) => requests.post<void>('/account/login', { email, password }),
     logout: () => requests.post<void>('/account/logout', {})
 };
 
 const Puzzles = {
-    getAll: () => requests.get<PuzzleDtoFromApi[]>('/puzzles'),
-    getById: (puzzleId: number) => requests.get<PuzzleDtoFromApi>(`/puzzles/${puzzleId}`)
+    getAll: () => requests.get<Puzzle[]>('/puzzles'),
+    getById: (puzzleId: number) => requests.get<Puzzle>(`/puzzles/${puzzleId}`)
 };
 
 const UserPuzzles = {
-    getAll: () => requests.get<UserPuzzleDtoFromApi[]>('/user-puzzles/my-collection'),
-    getById: (puzzleId: number) => requests.get<UserPuzzleDtoFromApi>(`/user-puzzles/${puzzleId}`),
+    getAll: () => requests.get<UserPuzzle[]>('/user-puzzles/my-collection'),
+    getById: (puzzleId: number) => requests.get<UserPuzzle>(`/user-puzzles/${puzzleId}`),
     addToCollection: (puzzleId: number) => requests.post(`/user-puzzles/add/${puzzleId}`, {}),
     markAsCompleted: (puzzleId: number) => requests.post(`/user-puzzles/complete/${puzzleId}`, {}),
-    create: (puzzle: UserPuzzleDtoFromApi) => requests.post('/user-puzzles', puzzle),
-    update: (puzzle: UserPuzzleDtoFromApi) => requests.put(`/user-puzzles/${puzzle.userPuzzleId}`, puzzle),
+    create: (puzzle: UserPuzzle) => requests.post('/user-puzzles', puzzle),
+    update: (puzzle: UserPuzzle) => requests.put(`/user-puzzles/${puzzle.userPuzzleId}`, puzzle),
     delete: (puzzleId: number) => requests.delete(`/user-puzzles/${puzzleId}`)
 };
 

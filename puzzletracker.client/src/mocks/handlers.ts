@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { mockProfile, mockPuzzles, mockUserPuzzles } from './data';
-import type { UserPuzzleDto } from '../types/dto.types';
+import type { UserPuzzle } from '../types/dto.types';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:7110/api';
 
@@ -48,7 +48,7 @@ export const handlers = [
         const source = mockPuzzles.find(p => p.id === puzzleId);
         if (!source) return new HttpResponse(null, { status: 404 });
 
-        const newEntry: UserPuzzleDto = {
+        const newEntry: UserPuzzle = {
             ...source,
             userPuzzleId: Date.now(),
             isOwned: true,
@@ -71,14 +71,14 @@ export const handlers = [
     }),
 
     http.post(`${BASE_URL}/user-puzzles`, async ({ request }) => {
-        const body = (await request.json()) as UserPuzzleDto;
-        const newEntry: UserPuzzleDto = { ...body, userPuzzleId: Date.now() };
+        const body = (await request.json()) as UserPuzzle;
+        const newEntry: UserPuzzle = { ...body, userPuzzleId: Date.now() };
         userPuzzles = [...userPuzzles, newEntry];
         return HttpResponse.json(newEntry, { status: 201 });
     }),
 
     http.put(`${BASE_URL}/user-puzzles/:puzzleId`, async ({ params, request }) => {
-        const body = (await request.json()) as UserPuzzleDto;
+        const body = (await request.json()) as UserPuzzle;
         userPuzzles = userPuzzles.map(p =>
             p.userPuzzleId === Number(params.puzzleId) ? { ...p, ...body } : p
         );

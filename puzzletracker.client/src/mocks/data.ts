@@ -1,6 +1,6 @@
-import type { PuzzleDto, UserPuzzleDto, UserProfileDto } from '../types/dto.types';
+import type { Puzzle, UserPuzzle, UserProfile } from '../types/dto.types';
 
-export const mockProfile: UserProfileDto = {
+export const mockProfile: UserProfile = {
     id: 'user-1',
     name: 'Demo User',
     email: 'demo@example.com',
@@ -11,7 +11,7 @@ export const mockProfile: UserProfileDto = {
     profilePicUrl: undefined,
 };
 
-export const mockPuzzles: PuzzleDto[] = [
+export const mockPuzzles: Puzzle[] = [
     {
         id: 1,
         puzzleType: 'Official',
@@ -80,7 +80,7 @@ export const mockPuzzles: PuzzleDto[] = [
     },
 ];
 
-export const mockUserPuzzles: UserPuzzleDto[] = [
+export const mockUserPuzzles: UserPuzzle[] = [
     {
         ...mockPuzzles[0],
         userPuzzleId: 101,
