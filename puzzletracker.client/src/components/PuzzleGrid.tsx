@@ -1,4 +1,4 @@
-import type { Puzzle } from "../types/dto.types";
+import type { Puzzle } from "../types/dto/puzzle.types";
 import PuzzleCard from "./PuzzleCard";
 
 interface PuzzleGridProps {

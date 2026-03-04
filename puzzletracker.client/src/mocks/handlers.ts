@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { mockProfile, mockPuzzles, mockUserPuzzles } from './data';
-import type { UserPuzzle } from '../types/dto.types';
+import type { UserPuzzle } from '../types/dto/puzzle.types';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:7110/api';
 

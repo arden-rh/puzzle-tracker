@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Client from "../api/Client";
-import type { Series } from "../types/dto.types";
+import type { Series } from "../types/dto/series.types";
 
 const useSeries = () => {
     const [loading, setLoading] = useState(false);

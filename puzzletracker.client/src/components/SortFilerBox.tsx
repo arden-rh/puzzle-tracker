@@ -1,5 +1,6 @@
 import { useState } from "react";
-import type { Series, PuzzleFilters } from "../types/dto.types";
+import type { PuzzleFilters } from "../types/dto/puzzle.types";
+import type { Series } from "../types/dto/series.types";
 
 interface SortFilterBoxProps {
     listOfSeries: Series[];

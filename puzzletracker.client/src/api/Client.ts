@@ -1,5 +1,12 @@
 import axios, { type AxiosResponse } from 'axios';
-import type { UserPuzzle, Puzzle, UserProfile, Series, Brand, Illustrator } from '../types/dto.types';
+
+// DTO imports
+import type { Brand } from '../types/dto/brand.types';
+import type { Illustrator } from '../types/dto/illustrator.types';
+import type { PaginatedResult } from '../types/dto/paginated-result.types';
+import type { Series } from '../types/dto/series.types';
+import type { UserPuzzle, Puzzle } from '../types/dto/puzzle.types';
+import type { UserProfile } from '../types/dto/user-profile.types';
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:7110/api';
 

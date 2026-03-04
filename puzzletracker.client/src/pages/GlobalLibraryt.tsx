@@ -1,19 +1,23 @@
 import { useEffect, useState } from "react";
+
+// Types
+import type { PuzzleFilters } from "../types/dto/puzzle.types";
+import type { Series } from "../types/dto/series.types";
+
+// Hooks
 import useBrands from "../hooks/useBrands";
 import useIllustrators from "../hooks/useIllustrators";
 import usePuzzles from "../hooks/usePuzzles";
 import useSeries from "../hooks/useSeries";
-import useUser from "../hooks/useUser";
 import useUserPuzzles from "../hooks/useUserPuzzles";
 
 // Components
 import PuzzleGrid from "../components/PuzzleGrid";
 import PuzzleList from "../components/PuzzleList";
 import SortFilterBox from "../components/SortFilerBox";
-import type { Series, PuzzleFilters } from "../types/dto.types";
+
 
 const GlobalLibrary = () => {
-    const { user } = useUser();
     const { puzzles, loading, error, getAllPuzzles } = usePuzzles();
     const { getAllBrands } = useBrands();
     const { getAllIllustrators } = useIllustrators();

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Client from "../api/Client";
-import type { Puzzle, PuzzleFilters } from "../types/dto.types";
+import type { Puzzle, PuzzleFilters } from "../types/dto/puzzle.types";
 
 const usePuzzles = () => {
     const [loading, setLoading] = useState(false);

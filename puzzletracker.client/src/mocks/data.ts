@@ -1,4 +1,5 @@
-import type { Puzzle, UserPuzzle, UserProfile } from '../types/dto.types';
+import type { Puzzle, UserPuzzle } from '../types/dto/puzzle.types';
+import type { UserProfile } from '../types/dto/user-profile.types';
 
 export const mockProfile: UserProfile = {
     id: 'user-1',

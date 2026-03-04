@@ -1,10 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { useState, useEffect, createContext } from "react";
 import Client from "../api/Client";
-import type { UserProfileDto } from "../types/dto.types";
+import type { UserProfile } from "../types/dto/user-profile.types";
 
 interface UserContextValues {
-    user: UserProfileDto | null;
+    user: UserProfile | null;
     loading: boolean;
     login: (email: string, password: string) => Promise<void>;
     logout: () => void;
@@ -19,7 +19,7 @@ export const UserContext = createContext<UserContextValues | undefined>(undefine
 
 export const UserProvider: React.FC<UserContextProps> = ({ children }) => {
 
-    const [user, setUser] = useState<UserProfileDto | null>(null);
+    const [user, setUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
 
     const refreshUserProfile = async () => {

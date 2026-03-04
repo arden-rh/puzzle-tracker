@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Client from "../api/Client";
-import type { UserPuzzle } from "../types/dto.types";
+import type { UserPuzzle } from "../types/dto/puzzle.types";
 
 
 const useUserPuzzles = () => {

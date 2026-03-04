@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Client from "../api/Client";
-import type { Illustrator } from "../types/dto.types";
+import type { Illustrator } from "../types/dto/illustrator.types";
 
 const useIllustrators = () => {
     const [loading, setLoading] = useState(false);
