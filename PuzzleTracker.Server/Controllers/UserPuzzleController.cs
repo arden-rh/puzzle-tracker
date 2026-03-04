@@ -26,7 +26,9 @@ namespace PuzzleTracker.Server.Controllers
         }
 
         [HttpGet("my-collection")]
-        public async Task<ActionResult<IEnumerable<UserPuzzleDto>>> GetUserCollection()
+        public async Task<ActionResult<PaginatedResult<UserPuzzleDto>>> GetUserCollection(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -68,10 +70,33 @@ namespace PuzzleTracker.Server.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(collection);
+            // Get total count before pagination
+            var totalCount = collection.Count;
+
+            // Ensure valid pagination parameters
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 20;
+            if (pageSize > 100) pageSize = 100; // Max page size to prevent abuse
+
+            // Apply pagination
+            var paginatedCollection = collection
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var result = new PaginatedResult<UserPuzzleDto>
+            {
+                Items = paginatedCollection,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+            };
+
+            return Ok(result);
         }
 
-        // READ AND TEST THIS
+        // Add puzzle to collection - this is for adding existing puzzles from the main catalog, not for creating new custom puzzles
         [HttpPost("add/{puzzleId}")]
         public async Task<ActionResult> AddToCollection(int puzzleId)
         {
@@ -100,7 +125,7 @@ namespace PuzzleTracker.Server.Controllers
             return Ok("Puzzle added to your collection.");
         }
 
-        // READ AND TEST THIS
+        // 
         [HttpPost("update/{userPuzzleId}")]
         public async Task<ActionResult> UpdateCollectionEntry(int userPuzzleId, [FromBody] UserPuzzleDto updatedData)
         {
@@ -119,6 +144,7 @@ namespace PuzzleTracker.Server.Controllers
             return Ok("Collection entry updated.");
         }
 
+        // Mark a puzzle as completed - this will increment the times completed and update the last completed date
         [HttpPost("complete/{userPuzzleId}")]
         public async Task<ActionResult> MarkAsCompleted(int userPuzzleId)
         {
