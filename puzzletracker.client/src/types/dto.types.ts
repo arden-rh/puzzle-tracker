@@ -66,3 +66,15 @@ export interface Series {
     brandName: string;
     numberOfPuzzles: number;
 }
+
+export interface PuzzleFilters {
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    puzzleType?: string;
+    brand?: string;
+    series?: string[];
+    illustrator?: string[];
+    pieceRanges?: string[];
+    inCollection?: boolean;
+    isCompleted?: boolean;
+}

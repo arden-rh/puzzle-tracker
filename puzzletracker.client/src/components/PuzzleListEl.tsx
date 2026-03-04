@@ -20,8 +20,10 @@ const PuzzleListEl: React.FC<PuzzleListElProps> = ({
             {puzzle.puzzleType == "JVH" && <h4 className="text-sm text-gray-600">{puzzle.nameLocal}</h4>}
             <div>
                 <p className="text-sm text-black font-medium">{puzzle.brandName}</p>
-                {puzzle.seriesName && <p className="text-sm text-gray-600"><span className="text-black">Series:</span> {puzzle.seriesName} </p>}
-                {puzzle.productNumber && <p className="text-sm text-gray-600"><span className="text-black">Product number:</span> {puzzle.productNumber} </p>}
+                {puzzle.releaseDate && <p className="text-sm text-gray-600"><span className="text-black">Release date:</span> {puzzle.releaseDate}</p>}
+                {puzzle.seriesName && <p className="text-sm text-gray-600"><span className="text-black">Series:</span> {puzzle.seriesName}</p>}
+                {puzzle.illustratorName && <p className="text-sm text-gray-600"><span className="text-black">Illustrator:</span> {puzzle.illustratorName}</p>}
+                {puzzle.productNumber && <p className="text-sm text-gray-600"><span className="text-black">Product number:</span> {puzzle.productNumber}</p>}
             </div>
             <div>
                 <button

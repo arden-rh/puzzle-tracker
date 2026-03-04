@@ -10,7 +10,7 @@ import useUserPuzzles from "../hooks/useUserPuzzles";
 import PuzzleGrid from "../components/PuzzleGrid";
 import PuzzleList from "../components/PuzzleList";
 import SortFilterBox from "../components/SortFilerBox";
-import type { Series } from "../types/dto.types";
+import type { Series, PuzzleFilters } from "../types/dto.types";
 
 const GlobalLibrary = () => {
     const { user } = useUser();
@@ -23,8 +23,9 @@ const GlobalLibrary = () => {
     const [listOfBrands, setListOfBrands] = useState<string[]>([]);
     const [listOfSeries, setListOfSeries] = useState<Series[]>([]);
     const [listOfIllustrators, setListOfIllustrators] = useState<string[]>([]);
+    const [currentFilters, setCurrentFilters] = useState<PuzzleFilters>({});
 
-    const [listView, setListView] = useState(false);
+    const [listView, setListView] = useState(true);
     const [showSortFilter, setShowSortFilter] = useState(false);
 
     useEffect(() => {
@@ -34,36 +35,37 @@ const GlobalLibrary = () => {
         getAllIllustrators().then(fetchedIllustrators => fetchedIllustrators.flatMap(illustrator => illustrator.name)).then(illustratorNames => setListOfIllustrators(illustratorNames));
     }, []);
 
+    const handleApplyFilters = async (filters: PuzzleFilters, isReset?: boolean) => {
+        setCurrentFilters(filters);
+        if (!isReset) setShowSortFilter(false);
+        await getAllPuzzles(filters);
+    };
+
     const handleAddToCollection = async (puzzleId: number) => {
         await addPuzzleToCollection(puzzleId);
-        // Refresh the global puzzles list to show updated status
-        await getAllPuzzles();
+        await getAllPuzzles(currentFilters);
     };
 
     const handleMarkCompleted = async (puzzleId: number) => {
         await markPuzzleAsCompleted(puzzleId);
-        // Refresh the global puzzles list to show updated status
-        await getAllPuzzles();
+        await getAllPuzzles(currentFilters);
     };
-
-    if (loading) return <div>Loading puzzles...</div>;
-    if (error) return <div>Error loading puzzles: {error}</div>;
 
     return (
         <div className="flex flex-col gap-4">
             <h2 className="text-2xl font-bold">Global Puzzle Library</h2>
             <div className="w-full flex gap-3">
                 <button
-                    className={`py-1 p-2 text-sm rounded shadow ${!listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
-                    onClick={() => setListView(false)}
-                >
-                    Grid View
-                </button>
-                <button
                     className={`py-1 p-2 text-sm rounded shadow ${listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
                     onClick={() => setListView(true)}
                 >
                     List View
+                </button>
+                <button
+                    className={`py-1 p-2 text-sm rounded shadow ${!listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                    onClick={() => setListView(false)}
+                >
+                    Grid View
                 </button>
                 <button
                     className={`py-1 p-2 text-sm rounded shadow ${showSortFilter ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
@@ -72,9 +74,14 @@ const GlobalLibrary = () => {
                     Sort & Filter
                 </button>
             </div>
-            {showSortFilter && (
-                <SortFilterBox listOfSeries={listOfSeries} listOfBrands={listOfBrands} listOfIllustrators={listOfIllustrators} />
-            )}
+            <div className={showSortFilter ? "" : "hidden"}>
+                <SortFilterBox 
+                    listOfSeries={listOfSeries} 
+                    listOfBrands={listOfBrands} 
+                    listOfIllustrators={listOfIllustrators}
+                    onApplyFilters={handleApplyFilters}
+                />
+            </div>
             {listView ? (
                 <PuzzleList puzzles={puzzles} loading={loading} error={error} onMarkCompleted={handleMarkCompleted} onUnmarkCompleted={handleAddToCollection} actionLoading={actionLoading} />
             ) : (

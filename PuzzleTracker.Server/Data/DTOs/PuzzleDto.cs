@@ -20,6 +20,7 @@
             // Sub-class specific fields
             public string? Publisher { get; set; }
             public string? ReleaseDate { get; set; }
+            public DateTime? SortableReleaseDate { get; set; }
             public string? Manufacturer { get; set; }
             public bool? IsComboPack { get; set; }
 

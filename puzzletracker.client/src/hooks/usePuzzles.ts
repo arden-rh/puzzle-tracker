@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Client from "../api/Client";
-import type { Puzzle } from "../types/dto.types";
+import type { Puzzle, PuzzleFilters } from "../types/dto.types";
 
 const usePuzzles = () => {
     const [loading, setLoading] = useState(false);
@@ -8,12 +8,26 @@ const usePuzzles = () => {
     const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
     const [selectedPuzzle, setSelectedPuzzle] = useState<Puzzle | null>(null);
 
-    const getAllPuzzles = async () => {
+    const getAllPuzzles = async (filters?: PuzzleFilters) => {
         setLoading(true);
         setError(null);
 
         try {
-            const fetchedPuzzles = await Client.Puzzles.getAll();
+            const params = new URLSearchParams();
+
+            if (filters) {
+                if (filters.sortBy) params.append('sortBy', filters.sortBy);
+                if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+                if (filters.puzzleType) params.append('puzzleType', filters.puzzleType);
+                if (filters.brand) params.append('brand', filters.brand);
+                if (filters.series && filters.series.length > 0) params.append('series', filters.series.join(','));
+                if (filters.illustrator && filters.illustrator.length > 0) params.append('illustrator', filters.illustrator.join(','));
+                if (filters.pieceRanges && filters.pieceRanges.length > 0) params.append('pieceRanges', filters.pieceRanges.join(','));
+                if (filters.inCollection !== undefined) params.append('inCollection', String(filters.inCollection));
+                if (filters.isCompleted !== undefined) params.append('isCompleted', String(filters.isCompleted));
+            }
+
+            const fetchedPuzzles = await Client.Puzzles.getAll(params.toString() ? params : undefined);
             setPuzzles(fetchedPuzzles);
             return fetchedPuzzles;
         } catch (err: any) {

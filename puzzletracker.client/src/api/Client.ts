@@ -37,7 +37,10 @@ const Account = {
 };
 
 const Puzzles = {
-    getAll: () => requests.get<Puzzle[]>('/puzzles'),
+    getAll: (params?: URLSearchParams) => {
+        const queryString = params ? `?${params.toString()}` : '';
+        return requests.get<Puzzle[]>(`/puzzles${queryString}`);
+    },
     getById: (puzzleId: number) => requests.get<Puzzle>(`/puzzles/${puzzleId}`)
 };
 

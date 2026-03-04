@@ -20,9 +20,11 @@ const PuzzleList: React.FC<PuzzleListProps> = ({
 }) => {
     if (loading) return <div>Loading puzzles...</div>;
     if (error) return <div>Error loading puzzles: {error}</div>;
-    
+
     return (
         <div className="grid grid-cols-1 gap-4">
+            {puzzles.length === 0 && <div>No puzzles found matching the criteria.</div>}
+            <p>Showing {puzzles.length} puzzles</p>
             {puzzles.map((puzzle) => (
                 <PuzzleListEl puzzle={puzzle} key={puzzle.id} onMarkCompleted={onMarkCompleted} onUnmarkCompleted={onUnmarkCompleted} actionLoading={actionLoading} />
             ))}
