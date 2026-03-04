@@ -7,6 +7,10 @@ const usePuzzles = () => {
     const [error, setError] = useState<string | null>(null);
     const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
     const [selectedPuzzle, setSelectedPuzzle] = useState<Puzzle | null>(null);
+    const [totalCount, setTotalCount] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [pageSize, setPageSize] = useState(20);
 
     const getAllPuzzles = async (filters?: PuzzleFilters) => {
         setLoading(true);
@@ -25,11 +29,17 @@ const usePuzzles = () => {
                 if (filters.pieceRanges && filters.pieceRanges.length > 0) params.append('pieceRanges', filters.pieceRanges.join(','));
                 if (filters.inCollection !== undefined) params.append('inCollection', String(filters.inCollection));
                 if (filters.isCompleted !== undefined) params.append('isCompleted', String(filters.isCompleted));
+                if (filters.page) params.append('page', String(filters.page));
+                if (filters.pageSize) params.append('pageSize', String(filters.pageSize));
             }
 
-            const fetchedPuzzles = await Client.Puzzles.getAll(params.toString() ? params : undefined);
-            setPuzzles(fetchedPuzzles);
-            return fetchedPuzzles;
+            const result = await Client.Puzzles.getAll(params.toString() ? params : undefined);
+            setPuzzles(result.items);
+            setTotalCount(result.totalCount);
+            setCurrentPage(result.page);
+            setTotalPages(result.totalPages);
+            setPageSize(result.pageSize);
+            return result.items;
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || err.message || "Error fetching puzzles";
             setError(errorMsg);
@@ -68,6 +78,10 @@ const usePuzzles = () => {
         selectedPuzzle,
         loading,
         error,
+        totalCount,
+        currentPage,
+        totalPages,
+        pageSize,
         // Functions
         getAllPuzzles,
         getPuzzleById,

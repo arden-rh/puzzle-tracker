@@ -24,7 +24,6 @@ const PuzzleList: React.FC<PuzzleListProps> = ({
     return (
         <div className="grid grid-cols-1 gap-4">
             {puzzles.length === 0 && <div>No puzzles found matching the criteria.</div>}
-            <p>Showing {puzzles.length} puzzles</p>
             {puzzles.map((puzzle) => (
                 <PuzzleListEl puzzle={puzzle} key={puzzle.id} onMarkCompleted={onMarkCompleted} onUnmarkCompleted={onUnmarkCompleted} actionLoading={actionLoading} />
             ))}

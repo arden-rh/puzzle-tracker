@@ -25,7 +25,7 @@ namespace PuzzleTracker.Server.Controllers
         }
 
         [HttpGet("puzzles")]
-        public async Task<ActionResult<IEnumerable<PuzzleDto>>> GetAllPuzzles(
+        public async Task<ActionResult<PaginatedResult<PuzzleDto>>> GetAllPuzzles(
             [FromQuery] string? sortBy = null,
             [FromQuery] string? sortOrder = "asc",
             [FromQuery] string? puzzleType = null,
@@ -34,7 +34,9 @@ namespace PuzzleTracker.Server.Controllers
             [FromQuery] string? illustrator = null,
             [FromQuery] string? pieceRanges = null,
             [FromQuery] bool? inCollection = null,
-            [FromQuery] bool? isCompleted = null)
+            [FromQuery] bool? isCompleted = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
         {
 
             var userId = _userManager.GetUserId(User);
@@ -151,12 +153,8 @@ namespace PuzzleTracker.Server.Controllers
                         ? collection.OrderByDescending(p => p.SortablePieceCount).ToList()
                         : collection.OrderBy(p => p.SortablePieceCount).ToList(),
                     "date" => sortOrder?.ToLower() == "desc"
-                        ? collection.OrderByDescending(p => 
-                            string.IsNullOrEmpty(p.ReleaseDate) || p.ReleaseDate.Equals("Unknown", StringComparison.OrdinalIgnoreCase) 
-                                ? DateTime.MinValue 
-                                : DateTime.TryParse(p.ReleaseDate, out var date) ? date : DateTime.MinValue)
-                          .ToList()
-                        : collection.OrderBy(p => p.SortableReleaseDate ?? DateTime.MinValue).ToList(),
+                        ? collection.OrderByDescending(p => p.SortableReleaseDate ?? DateTime.MinValue).ToList()
+                        : collection.OrderBy(p => p.SortableReleaseDate ?? DateTime.MaxValue).ToList(),
                     _ => collection
                 };
             }
@@ -174,7 +172,30 @@ namespace PuzzleTracker.Server.Controllers
                 }
             }
 
-            return Ok(collection);
+            // Get total count before pagination
+            var totalCount = collection.Count;
+
+            // Ensure valid pagination parameters
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 20;
+            if (pageSize > 100) pageSize = 100; // Max page size to prevent abuse
+
+            // Apply pagination
+            var paginatedCollection = collection
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var result = new PaginatedResult<PuzzleDto>
+            {
+                Items = paginatedCollection,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+            };
+
+            return Ok(result);
         }
 
         [HttpGet("puzzles/{id}")]

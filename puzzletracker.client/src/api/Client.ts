@@ -46,7 +46,7 @@ const Account = {
 const Puzzles = {
     getAll: (params?: URLSearchParams) => {
         const queryString = params ? `?${params.toString()}` : '';
-        return requests.get<Puzzle[]>(`/puzzles${queryString}`);
+        return requests.get<PaginatedResult<Puzzle>>(`/puzzles${queryString}`);
     },
     getById: (puzzleId: number) => requests.get<Puzzle>(`/puzzles/${puzzleId}`)
 };

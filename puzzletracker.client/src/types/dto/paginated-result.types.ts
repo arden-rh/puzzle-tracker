@@ -1,7 +1,9 @@
 export interface PaginatedResult<T> {
     items: T[];
-    totalItems: number;
-    totalPages: number;
-    currentPage: number;
+    totalCount: number;
+    page: number;
     pageSize: number;
+    totalPages: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
 }

@@ -12,13 +12,14 @@ import useSeries from "../hooks/useSeries";
 import useUserPuzzles from "../hooks/useUserPuzzles";
 
 // Components
+import Pagination from "../components/Pagination";
 import PuzzleGrid from "../components/PuzzleGrid";
 import PuzzleList from "../components/PuzzleList";
 import SortFilterBox from "../components/SortFilerBox";
 
 
 const GlobalLibrary = () => {
-    const { puzzles, loading, error, getAllPuzzles } = usePuzzles();
+    const { puzzles, loading, error, getAllPuzzles, totalCount, currentPage, totalPages, pageSize } = usePuzzles();
     const { getAllBrands } = useBrands();
     const { getAllIllustrators } = useIllustrators();
     const { getAllSeries } = useSeries();
@@ -40,9 +41,15 @@ const GlobalLibrary = () => {
     }, []);
 
     const handleApplyFilters = async (filters: PuzzleFilters, isReset?: boolean) => {
-        setCurrentFilters(filters);
+        setCurrentFilters({ ...filters, page: 1 }); // Reset to page 1 when filters change
         if (!isReset) setShowSortFilter(false);
-        await getAllPuzzles(filters);
+        await getAllPuzzles({ ...filters, page: 1 });
+    };
+
+    const handlePageChange = async (page: number) => {
+        const updatedFilters = { ...currentFilters, page };
+        setCurrentFilters(updatedFilters);
+        await getAllPuzzles(updatedFilters);
     };
 
     const handleAddToCollection = async (puzzleId: number) => {
@@ -86,11 +93,22 @@ const GlobalLibrary = () => {
                     onApplyFilters={handleApplyFilters}
                 />
             </div>
+
+            <div className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages} | Showing {puzzles.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount} puzzles
+            </div>
+
             {listView ? (
                 <PuzzleList puzzles={puzzles} loading={loading} error={error} onMarkCompleted={handleMarkCompleted} onUnmarkCompleted={handleAddToCollection} actionLoading={actionLoading} />
             ) : (
                 <PuzzleGrid puzzles={puzzles} loading={loading} error={error} onMarkCompleted={handleMarkCompleted} onUnmarkCompleted={handleAddToCollection} actionLoading={actionLoading} />
             )}
+
+            <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages} 
+                onPageChange={handlePageChange} 
+            />
         </div>
     );
 }
