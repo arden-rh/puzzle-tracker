@@ -269,12 +269,12 @@ namespace PuzzleTracker.Server.Controllers
             return Ok("Puzzle ownership toggled.");
         }
 
-        [HttpDelete("remove/{userPuzzleId}")]
-        public async Task<ActionResult> RemoveFromCollection(int userPuzzleId)
+        [HttpDelete("remove/{puzzleId}")]
+        public async Task<ActionResult> RemoveFromCollection(int puzzleId)
         {
             var userId = _userManager.GetUserId(User);
             var userPuzzle = await _context.UserPuzzles
-                .FirstOrDefaultAsync(up => up.Id == userPuzzleId && up.UserId == userId);
+                .FirstOrDefaultAsync(up => up.PuzzleId == puzzleId && up.UserId == userId);
             if (userPuzzle == null)
                 return NotFound("Collection entry not found.");
             _context.UserPuzzles.Remove(userPuzzle);
