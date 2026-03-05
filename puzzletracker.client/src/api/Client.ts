@@ -52,10 +52,13 @@ const Puzzles = {
 };
 
 const UserPuzzles = {
-    getAll: () => requests.get<UserPuzzle[]>('/user-puzzles/my-collection'),
-    getById: (puzzleId: number) => requests.get<UserPuzzle>(`/user-puzzles/${puzzleId}`),
+    getAll: () => requests.get<PaginatedResult<UserPuzzle>>('/user-puzzles/my-collection'),
+    getById: (puzzleId: number) => requests.get<UserPuzzle>(`/user-puzzles/my-collection/${puzzleId}`),
+    isInCollection: (puzzleId: number) => requests.get<boolean>(`/user-puzzles/check/${puzzleId}`),
     addToCollection: (puzzleId: number) => requests.post(`/user-puzzles/add/${puzzleId}`, {}),
     markAsCompleted: (puzzleId: number) => requests.post(`/user-puzzles/complete/${puzzleId}`, {}),
+    markAsIncomplete: (puzzleId: number) => requests.post(`/user-puzzles/incomplete/${puzzleId}`, {}),
+    toggleOwned: (puzzleId: number) => requests.post(`/user-puzzles/toggle-owned/${puzzleId}`, {}),
     create: (puzzle: UserPuzzle) => requests.post('/user-puzzles', puzzle),
     update: (puzzle: UserPuzzle) => requests.put(`/user-puzzles/${puzzle.userPuzzleId}`, puzzle),
     delete: (puzzleId: number) => requests.delete(`/user-puzzles/${puzzleId}`)

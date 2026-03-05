@@ -17,10 +17,11 @@
 
 body {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   color: black;
-  box-sizing: border-box;
-
+  align-items: center;
+  justify-content: center;
 }
 
 #root {

@@ -2,7 +2,7 @@
 {
     public class PuzzleDto
     {
-            public int Id { get; set; }
+            public int PuzzleId { get; set; }
             public string PuzzleType { get; set; }
             public string NameEnglish { get; set; }
             public string? NameLocal { get; set; }

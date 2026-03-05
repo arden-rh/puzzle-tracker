@@ -1,7 +1,7 @@
 export type PuzzleDiscriminator = "Official" | "JVH" | "UserCustom";
 
 export interface Puzzle {
-    id: number;
+    puzzleId: number;
     puzzleType: PuzzleDiscriminator;
     nameEnglish: string;
     nameLocal?: string;

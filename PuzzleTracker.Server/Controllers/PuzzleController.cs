@@ -110,7 +110,7 @@ namespace PuzzleTracker.Server.Controllers
             var collection = await query
                 .Select(p => new PuzzleDto
                 {
-                    Id = p.Id,
+                    PuzzleId = p.Id,
                     NameEnglish = p.NameEnglish,
                     NameLocal = p.NameLocal,
                     LocalLanguage = p.LocalLanguage,
@@ -206,7 +206,7 @@ namespace PuzzleTracker.Server.Controllers
                 .Where(p => p.Id == id)
                 .Select(p => new PuzzleDto
                 {
-                    Id = p.Id,
+                    PuzzleId = p.Id,
                     NameEnglish = p.NameEnglish,
                     NameLocal = p.NameLocal,
                     LocalLanguage = p.LocalLanguage,

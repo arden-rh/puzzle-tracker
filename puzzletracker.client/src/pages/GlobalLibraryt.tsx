@@ -23,7 +23,10 @@ const GlobalLibrary = () => {
     const { getAllBrands } = useBrands();
     const { getAllIllustrators } = useIllustrators();
     const { getAllSeries } = useSeries();
-    const { addPuzzleToCollection, markPuzzleAsCompleted, loading: actionLoading } = useUserPuzzles();
+    const { addPuzzleToCollection, removePuzzleFromCollection, markPuzzleAsCompleted, markPuzzleAsIncomplete, getAllUserPuzzles, userPuzzles, loading: actionLoading } = useUserPuzzles();
+
+    const collectionIds = new Set(userPuzzles.map(p => p.puzzleId));
+    const completedIds = new Set(userPuzzles.filter(p => p.isCompleted).map(p => p.puzzleId));
 
     const [listOfBrands, setListOfBrands] = useState<string[]>([]);
     const [listOfSeries, setListOfSeries] = useState<Series[]>([]);
@@ -35,6 +38,7 @@ const GlobalLibrary = () => {
 
     useEffect(() => {
         getAllPuzzles();
+        getAllUserPuzzles();
         getAllSeries().then(fetchedSeries => setListOfSeries(fetchedSeries));
         getAllBrands().then(fetchedBrands => fetchedBrands.flatMap(brand => brand.name)).then(brandNames => setListOfBrands(brandNames));
         getAllIllustrators().then(fetchedIllustrators => fetchedIllustrators.flatMap(illustrator => illustrator.name)).then(illustratorNames => setListOfIllustrators(illustratorNames));
@@ -54,12 +58,22 @@ const GlobalLibrary = () => {
 
     const handleAddToCollection = async (puzzleId: number) => {
         await addPuzzleToCollection(puzzleId);
-        await getAllPuzzles(currentFilters);
+        await Promise.all([getAllPuzzles(currentFilters), getAllUserPuzzles()]);
+    };
+
+    const handleRemoveFromCollection = async (puzzleId: number) => {
+        await removePuzzleFromCollection(puzzleId);
+        await Promise.all([getAllPuzzles(currentFilters), getAllUserPuzzles()]);
     };
 
     const handleMarkCompleted = async (puzzleId: number) => {
         await markPuzzleAsCompleted(puzzleId);
-        await getAllPuzzles(currentFilters);
+        await getAllUserPuzzles();
+    };
+
+    const handleMarkIncomplete = async (puzzleId: number) => {
+        await markPuzzleAsIncomplete(puzzleId);
+        await getAllUserPuzzles();
     };
 
     return (
@@ -99,9 +113,9 @@ const GlobalLibrary = () => {
             </div>
 
             {listView ? (
-                <PuzzleList puzzles={puzzles} loading={loading} error={error} onMarkCompleted={handleMarkCompleted} onUnmarkCompleted={handleAddToCollection} actionLoading={actionLoading} />
+                <PuzzleList puzzles={puzzles} loading={loading} error={error} collectionIds={collectionIds} completedIds={completedIds} onMarkCompleted={handleMarkCompleted} onMarkIncomplete={handleMarkIncomplete} onAddToCollection={handleAddToCollection} onRemoveFromCollection={handleRemoveFromCollection} actionLoading={actionLoading} />
             ) : (
-                <PuzzleGrid puzzles={puzzles} loading={loading} error={error} onMarkCompleted={handleMarkCompleted} onUnmarkCompleted={handleAddToCollection} actionLoading={actionLoading} />
+                <PuzzleGrid puzzles={puzzles} loading={loading} error={error} collectionIds={collectionIds} completedIds={completedIds} onMarkCompleted={handleMarkCompleted} onMarkIncomplete={handleMarkIncomplete} onAddToCollection={handleAddToCollection} onRemoveFromCollection={handleRemoveFromCollection} actionLoading={actionLoading} />
             )}
 
             <Pagination 
