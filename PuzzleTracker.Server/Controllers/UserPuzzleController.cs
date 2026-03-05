@@ -193,6 +193,50 @@ namespace PuzzleTracker.Server.Controllers
             return Ok("Puzzle added to your collection.");
         }
 
+        // Add a custom puzzle to the user's collection - this will create a new UserCustomPuzzle and add it to the user's collection
+        [HttpPost("add-custom")]
+        public async Task<ActionResult> AddCustomPuzzle([FromBody] UserCustomPuzzleDto customPuzzleData)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            // Create a new UserCustomPuzzle
+            var customPuzzle = new UserCustomPuzzle
+            {
+                NameEnglish = customPuzzleData.NameEnglish,
+                NameLocal = customPuzzleData.NameLocal,
+                LocalLanguage = customPuzzleData.LocalLanguage,
+                ProductNumber = customPuzzleData.ProductNumber,
+                NumberOfPieces = customPuzzleData.NumberOfPieces,
+                SortablePieceCount = customPuzzleData.SortablePieceCount,
+                BoxImgSrc = customPuzzleData.BoxImgSrc,
+                BrandId = customPuzzleData.BrandId,
+                PuzzleSeriesId = customPuzzleData.PuzzleSeriesId,
+                IllustratorId = customPuzzleData.IllustratorId,
+                CreatedByUserId = userId,
+                DateAdded = DateTime.Now,
+                IsPublic = customPuzzleData.IsPublic
+            };
+
+            _context.CustomPuzzles.Add(customPuzzle);
+            await _context.SaveChangesAsync();
+
+            // Add the custom puzzle to the user's collection
+            var userPuzzle = new UserPuzzle
+            {
+                UserId = userId,
+                PuzzleId = customPuzzle.Id,
+                IsOwned = true,
+                IsCompleted = false,
+                TimesCompleted = 0,
+                LastCompletedDate = null
+            };
+
+            _context.UserPuzzles.Add(userPuzzle);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Custom puzzle added to your collection.", puzzleId = customPuzzle.Id, userPuzzleId = userPuzzle.Id });
+        }
+
         // 
         [HttpPost("update/{userPuzzleId}")]
         public async Task<ActionResult> UpdateCollectionEntry(int userPuzzleId, [FromBody] UserPuzzleDto updatedData)
@@ -258,6 +302,7 @@ namespace PuzzleTracker.Server.Controllers
             return Ok("Puzzle marked as incomplete.");
         }
 
+        // Toggle ownership status - if the puzzle is not in the collection, it will be added with IsOwned = true. If it is already in the collection, it will toggle the IsOwned status.
         [HttpPost("toggle-owned/{puzzleId}")]
         public async Task<ActionResult> ToggleOwned(int puzzleId)
         {
@@ -287,6 +332,7 @@ namespace PuzzleTracker.Server.Controllers
             return Ok("Puzzle ownership toggled.");
         }
 
+        // Remove a puzzle from the user's collection - this will delete the UserPuzzle entry for that puzzle
         [HttpDelete("remove/{puzzleId}")]
         public async Task<ActionResult> RemoveFromCollection(int puzzleId)
         {

@@ -59,6 +59,13 @@ namespace PuzzleTracker.Server.Controllers
                 );
             }
 
+            // Filter out private custom puzzles (show only public ones or user's own)
+            query = query.Where(p => 
+                !(p is UserCustomPuzzle) || 
+                ((UserCustomPuzzle)p).IsPublic || 
+                (userId != null && ((UserCustomPuzzle)p).CreatedByUserId == userId)
+            );
+
             // Filtering
             if (!string.IsNullOrEmpty(puzzleType) && puzzleType != "all")
             {
