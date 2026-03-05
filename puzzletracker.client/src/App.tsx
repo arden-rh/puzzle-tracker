@@ -28,7 +28,7 @@ const App = () => {
                         <Route path="/profile" element={<ProtectedRoute />}>
                             <Route index element={<Profile />} />
                             <Route path="collection" element={<ProfileCollection />} />
-                            <Route path="puzzles/:id" element={<PuzzleDetails />} />
+                            <Route path="collection/:id" element={<PuzzleDetails />} />
                             <Route path="add-puzzle" element={<AddCustomPuzzle />} />
                         </Route>
 
