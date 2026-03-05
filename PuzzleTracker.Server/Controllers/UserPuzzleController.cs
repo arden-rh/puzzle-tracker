@@ -193,11 +193,51 @@ namespace PuzzleTracker.Server.Controllers
             return Ok("Puzzle added to your collection.");
         }
 
-        // Add a custom puzzle to the user's collection - this will create a new UserCustomPuzzle and add it to the user's collection
-        [HttpPost("add-custom")]
+        // Create a new custom puzzle to the user's collection
+        [HttpPost("create")]
         public async Task<ActionResult> AddCustomPuzzle([FromBody] UserCustomPuzzleDto customPuzzleData)
         {
             var userId = _userManager.GetUserId(User);
+
+            // Get or create Brand
+            var brand = await _context.Brands.FirstOrDefaultAsync(b => b.Name == customPuzzleData.BrandName);
+            if (brand == null)
+            {
+                brand = new Brand { Name = customPuzzleData.BrandName };
+                _context.Brands.Add(brand);
+                await _context.SaveChangesAsync();
+            }
+
+            // Get or create Series (optional)
+            int? seriesId = null;
+            if (!string.IsNullOrEmpty(customPuzzleData.SeriesName))
+            {
+                var series = await _context.Series.FirstOrDefaultAsync(s => s.Name == customPuzzleData.SeriesName && s.BrandId == brand.Id);
+                if (series == null)
+                {
+                    series = new PuzzleSeries { Name = customPuzzleData.SeriesName, BrandId = brand.Id };
+                    _context.Series.Add(series);
+                    await _context.SaveChangesAsync();
+                }
+                seriesId = series.Id;
+            }
+
+            // Get or create Illustrator (optional)
+            int? illustratorId = null;
+            if (!string.IsNullOrEmpty(customPuzzleData.IllustratorName))
+            {
+                var illustrator = await _context.Illustrators.FirstOrDefaultAsync(i => i.Name == customPuzzleData.IllustratorName);
+                if (illustrator == null)
+                {
+                    illustrator = new Illustrator { Name = customPuzzleData.IllustratorName };
+                    _context.Illustrators.Add(illustrator);
+                    await _context.SaveChangesAsync();
+                }
+                illustratorId = illustrator.Id;
+            }
+
+            // Calculate SortablePieceCount from NumberOfPieces
+            var sortablePieceCount = ParsePieceCount(customPuzzleData.NumberOfPieces);
 
             // Create a new UserCustomPuzzle
             var customPuzzle = new UserCustomPuzzle
@@ -207,11 +247,11 @@ namespace PuzzleTracker.Server.Controllers
                 LocalLanguage = customPuzzleData.LocalLanguage,
                 ProductNumber = customPuzzleData.ProductNumber,
                 NumberOfPieces = customPuzzleData.NumberOfPieces,
-                SortablePieceCount = customPuzzleData.SortablePieceCount,
+                SortablePieceCount = sortablePieceCount,
                 BoxImgSrc = customPuzzleData.BoxImgSrc,
-                BrandId = customPuzzleData.BrandId,
-                PuzzleSeriesId = customPuzzleData.PuzzleSeriesId,
-                IllustratorId = customPuzzleData.IllustratorId,
+                BrandId = brand.Id,
+                PuzzleSeriesId = seriesId,
+                IllustratorId = illustratorId,
                 CreatedByUserId = userId,
                 DateAdded = DateTime.Now,
                 IsPublic = customPuzzleData.IsPublic
@@ -237,7 +277,21 @@ namespace PuzzleTracker.Server.Controllers
             return Ok(new { message = "Custom puzzle added to your collection.", puzzleId = customPuzzle.Id, userPuzzleId = userPuzzle.Id });
         }
 
-        // 
+        private static int ParsePieceCount(string numberOfPieces)
+        {
+            if (string.IsNullOrEmpty(numberOfPieces))
+                return 0;
+
+            // Remove common text and extract first number
+            var cleaned = numberOfPieces.Trim().Split(' ')[0].Replace(",", "");
+
+            if (int.TryParse(cleaned, out var count))
+                return count;
+
+            return 0;
+        }
+
+        // To be implemented
         [HttpPost("update/{userPuzzleId}")]
         public async Task<ActionResult> UpdateCollectionEntry(int userPuzzleId, [FromBody] UserPuzzleDto updatedData)
         {

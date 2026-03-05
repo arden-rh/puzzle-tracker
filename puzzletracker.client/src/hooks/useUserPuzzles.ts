@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Client from "../api/Client";
-import type { UserPuzzle } from "../types/dto/puzzle.types";
+import type { UserPuzzle, UserCustomPuzzle, UpdateUserCustomPuzzle } from "../types/dto/puzzle.types";
 
 
 const useUserPuzzles = () => {
@@ -134,6 +134,52 @@ const useUserPuzzles = () => {
         }
     };
 
+    const toggleOwnedStatus = async (puzzleId: number) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            await Client.UserPuzzles.toggleOwned(puzzleId);
+            await getAllUserPuzzles(); // Refresh the list after toggling owned status
+        } catch (err: any) {
+            const errorMsg = err.response?.data?.message || err.message || `Error toggling owned status for puzzle with ID ${puzzleId}`;
+            setError(errorMsg);
+        } finally {
+            setLoading(false);
+        }   
+    };
+
+    const createCustomUserPuzzle = async (puzzle: UserCustomPuzzle) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            await Client.UserPuzzles.create(puzzle);
+            await getAllUserPuzzles(); // Refresh the list after creating a new custom puzzle
+        } catch (err: any) {
+            const errorMsg = err.response?.data?.message || err.message || `Error creating custom puzzle`;
+            setError(errorMsg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // TODO: Two separate functions for updating user-created puzzles vs. updating collection status of any puzzle?
+    const updateCustomUserPuzzle = async (puzzle: UpdateUserCustomPuzzle) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            await Client.UserPuzzles.update(puzzle);
+            await getAllUserPuzzles(); // Refresh the list after updating a custom puzzle
+        } catch (err: any) {
+            const errorMsg = err.response?.data?.message || err.message || `Error updating custom puzzle`;
+            setError(errorMsg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         // State
         userPuzzles,
@@ -150,7 +196,10 @@ const useUserPuzzles = () => {
         addPuzzleToCollection,
         removePuzzleFromCollection,
         markPuzzleAsCompleted,
-        markPuzzleAsIncomplete
+        markPuzzleAsIncomplete,
+        toggleOwnedStatus,
+        createCustomUserPuzzle,
+        updateCustomUserPuzzle
     };
 };
 

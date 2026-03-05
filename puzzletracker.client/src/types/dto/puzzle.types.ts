@@ -1,5 +1,6 @@
 export type PuzzleDiscriminator = "Official" | "JVH" | "UserCustom";
 
+// Base puzzle type with common fields
 export interface Puzzle {
     puzzleId: number;
     puzzleType: PuzzleDiscriminator;
@@ -27,6 +28,7 @@ export interface Puzzle {
     isCompletedByUser?: boolean;
 }
 
+// Extends Puzzle with user-specific fields for puzzles in the user's collection
 export interface UserPuzzle extends Puzzle {
     userPuzzleId: number;
     isOwned: boolean;
@@ -35,6 +37,25 @@ export interface UserPuzzle extends Puzzle {
     lastCompletedDate?: string;
 }
 
+// Used for puzzles created by users
+export interface UserCustomPuzzle {
+    nameEnglish: string;
+    nameLocal?: string;
+    localLanguage?: string;
+    productNumber?: string;
+    numberOfPieces: string;
+    boxImgSrc?: string;
+    brandName: string;
+    seriesName?: string;
+    illustratorName?: string;
+    isPublic: boolean;
+}
+
+export interface UpdateUserCustomPuzzle extends UserCustomPuzzle {
+    userPuzzleId: number;
+}
+
+// For params to filter and sort puzzles in the global library
 export interface PuzzleFilters {
     searchQuery?: string;
     sortBy?: string;

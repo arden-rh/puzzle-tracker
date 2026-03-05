@@ -7,11 +7,10 @@ namespace PuzzleTracker.Server.Data.DTOs
         public string? LocalLanguage { get; set; }
         public string? ProductNumber { get; set; }
         public string NumberOfPieces { get; set; }
-        public int SortablePieceCount { get; set; }
         public string? BoxImgSrc { get; set; }
-        public int BrandId { get; set; }
-        public int? PuzzleSeriesId { get; set; }
-        public int? IllustratorId { get; set; }
+        public string BrandName { get; set; }
+        public string? SeriesName { get; set; }
+        public string? IllustratorName { get; set; }
         public bool IsPublic { get; set; } = false;
     }
 }
