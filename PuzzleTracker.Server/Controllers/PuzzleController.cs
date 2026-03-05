@@ -28,6 +28,7 @@ namespace PuzzleTracker.Server.Controllers
         public async Task<ActionResult<PaginatedResult<PuzzleDto>>> GetAllPuzzles(
             [FromQuery] string? sortBy = null,
             [FromQuery] string? sortOrder = "asc",
+            [FromQuery] string? searchQuery = null,
             [FromQuery] string? puzzleType = null,
             [FromQuery] string? brand = null,
             [FromQuery] string? series = null,
@@ -43,6 +44,20 @@ namespace PuzzleTracker.Server.Controllers
 
             // Get all puzzles as a queryable to allow for dynamic filtering
             var query = _context.Puzzles.AsQueryable();
+
+            // Search functionality - searches across multiple fields
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                var searchTerm = searchQuery.ToLower();
+                query = query.Where(p => 
+                    p.NameEnglish.ToLower().Contains(searchTerm) ||
+                    (p.NameLocal != null && p.NameLocal.ToLower().Contains(searchTerm)) ||
+                    (p.ProductNumber != null && p.ProductNumber.ToLower().Contains(searchTerm)) ||
+                    p.Brand.Name.ToLower().Contains(searchTerm) ||
+                    (p.Series != null && p.Series.Name.ToLower().Contains(searchTerm)) ||
+                    (p.Illustrator != null && p.Illustrator.Name.ToLower().Contains(searchTerm))
+                );
+            }
 
             // Filtering
             if (!string.IsNullOrEmpty(puzzleType) && puzzleType != "all")

@@ -13,15 +13,18 @@ const useUserPuzzles = () => {
     const [pageSize, setPageSize] = useState(20);
 
 
-    const getAllUserPuzzles = async () => {
+    const getAllUserPuzzles = async (searchQuery?: string) => {
         setLoading(true);
         setError(null);
 
+        
         try {
-            const result = await Client.UserPuzzles.getAll();
-            console.log("API response for user puzzles:", result);
+            const params = new URLSearchParams();
+    
+            if (searchQuery) params.append("searchQuery", searchQuery);
+
+            const result = await Client.UserPuzzles.getAll(params);
             setUserPuzzles(result.items);
-            console.log("Fetched user puzzles in hook:", result.items);
             setTotalCount(result.totalCount);
             setCurrentPage(result.page);
             setTotalPages(result.totalPages);

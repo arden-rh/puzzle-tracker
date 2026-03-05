@@ -17,6 +17,7 @@ import Pagination from "../components/Pagination";
 import PuzzleGrid from "../components/PuzzleGrid";
 import PuzzleList from "../components/PuzzleList";
 import RemoveFromCollectionModal from "../components/RemoveFromCollectionModal";
+import SearchBox from "../components/SearchBox";
 import SortFilterBox from "../components/SortFilerBox";
 
 
@@ -95,7 +96,8 @@ const GlobalLibrary = () => {
     };
 
     return (
-        <div className="flex flex-col gap-4">            {addModalPuzzle && (
+        <div className="flex flex-col gap-4">
+            {addModalPuzzle && (
                 <AddToCollectionModal
                     puzzle={addModalPuzzle}
                     onConfirm={handleConfirmAdd}
@@ -110,7 +112,8 @@ const GlobalLibrary = () => {
                     onCancel={() => setRemoveModalPuzzle(null)}
                     loading={actionLoading}
                 />
-            )}            <h2 className="text-2xl font-bold">Global Puzzle Library</h2>
+            )}            
+            <h2 className="text-2xl font-bold">Global Puzzle Library</h2>
             <div className="w-full flex gap-3">
                 <button
                     className={`py-1 p-2 text-sm rounded shadow ${listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
@@ -131,6 +134,7 @@ const GlobalLibrary = () => {
                     Sort & Filter
                 </button>
             </div>
+            <SearchBox onSearch={(query) => handleApplyFilters({ ...currentFilters, searchQuery: query })} />
             <div className={showSortFilter ? "" : "hidden"}>
                 <SortFilterBox 
                     listOfSeries={listOfSeries} 

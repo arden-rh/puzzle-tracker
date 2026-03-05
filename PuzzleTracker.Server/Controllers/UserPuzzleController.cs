@@ -27,12 +27,30 @@ namespace PuzzleTracker.Server.Controllers
 
         [HttpGet("my-collection")]
         public async Task<ActionResult<PaginatedResult<UserPuzzleDto>>> GetUserCollection(
+            [FromQuery] string? searchQuery = null,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20)
+            [FromQuery] int pageSize = 10)
         {
             var userId = _userManager.GetUserId(User);
 
-            var collection = await _context.UserPuzzles
+            // Get all puzzles as a queryable to allow for dynamic filtering
+            var query = _context.UserPuzzles.AsQueryable();
+
+            // Search functionality - searches across multiple fields
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                var searchTerm = searchQuery.ToLower();
+                query = query.Where(p =>
+                    p.Puzzle.NameEnglish.ToLower().Contains(searchTerm) ||
+                    (p.Puzzle.NameLocal != null && p.Puzzle.NameLocal.ToLower().Contains(searchTerm)) ||
+                    (p.Puzzle.ProductNumber != null && p.Puzzle.ProductNumber.ToLower().Contains(searchTerm)) ||
+                    p.Puzzle.Brand.Name.ToLower().Contains(searchTerm) ||
+                    (p.Puzzle.Series != null && p.Puzzle.Series.Name.ToLower().Contains(searchTerm)) ||
+                    (p.Puzzle.Illustrator != null && p.Puzzle.Illustrator.Name.ToLower().Contains(searchTerm))
+                );
+            }
+
+            var collection = await query
                 .Where(up => up.UserId == userId)
                 .Select(up => new UserPuzzleDto
                 {
@@ -75,7 +93,7 @@ namespace PuzzleTracker.Server.Controllers
 
             // Ensure valid pagination parameters
             if (page < 1) page = 1;
-            if (pageSize < 1) pageSize = 20;
+            if (pageSize < 1) pageSize = 10;
             if (pageSize > 100) pageSize = 100; // Max page size to prevent abuse
 
             // Apply pagination

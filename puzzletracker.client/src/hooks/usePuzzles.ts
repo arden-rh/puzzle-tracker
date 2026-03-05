@@ -27,6 +27,7 @@ const usePuzzles = () => {
                 if (filters.series && filters.series.length > 0) params.append('series', filters.series.join(','));
                 if (filters.illustrator && filters.illustrator.length > 0) params.append('illustrator', filters.illustrator.join(','));
                 if (filters.pieceRanges && filters.pieceRanges.length > 0) params.append('pieceRanges', filters.pieceRanges.join(','));
+                if (filters.searchQuery) params.append('searchQuery', filters.searchQuery);
                 if (filters.inCollection !== undefined) params.append('inCollection', String(filters.inCollection));
                 if (filters.isCompleted !== undefined) params.append('isCompleted', String(filters.isCompleted));
                 if (filters.page) params.append('page', String(filters.page));

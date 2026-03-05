@@ -52,7 +52,10 @@ const Puzzles = {
 };
 
 const UserPuzzles = {
-    getAll: () => requests.get<PaginatedResult<UserPuzzle>>('/user-puzzles/my-collection'),
+    getAll: (params?: URLSearchParams) => {
+        const queryString = params ? `?${params.toString()}` : '';
+        return requests.get<PaginatedResult<UserPuzzle>>(`/user-puzzles/my-collection${queryString}`);
+    },
     getById: (puzzleId: number) => requests.get<UserPuzzle>(`/user-puzzles/my-collection/${puzzleId}`),
     isInCollection: (puzzleId: number) => requests.get<boolean>(`/user-puzzles/check/${puzzleId}`),
     addToCollection: (puzzleId: number) => requests.post(`/user-puzzles/add/${puzzleId}`, {}),

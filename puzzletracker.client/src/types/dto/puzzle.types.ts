@@ -36,6 +36,7 @@ export interface UserPuzzle extends Puzzle {
 }
 
 export interface PuzzleFilters {
+    searchQuery?: string;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
     puzzleType?: string;
