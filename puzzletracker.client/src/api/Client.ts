@@ -61,7 +61,7 @@ const UserPuzzles = {
     toggleOwned: (puzzleId: number) => requests.post(`/user-puzzles/toggle-owned/${puzzleId}`, {}),
     create: (puzzle: UserPuzzle) => requests.post('/user-puzzles', puzzle),
     update: (puzzle: UserPuzzle) => requests.put(`/user-puzzles/${puzzle.userPuzzleId}`, puzzle),
-    delete: (puzzleId: number) => requests.delete(`/user-puzzles/${puzzleId}`)
+    delete: (puzzleId: number) => requests.delete(`/user-puzzles/remove/${puzzleId}`)
 };
 
 const Illustrators = {

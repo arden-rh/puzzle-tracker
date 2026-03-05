@@ -7,7 +7,6 @@ const useUserPuzzles = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [userPuzzles, setUserPuzzles] = useState<UserPuzzle[]>([]);
-    const [selectedUserPuzzle, setSelectedUserPuzzle] = useState<UserPuzzle | null>(null);
     const [totalCount, setTotalCount] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
@@ -70,13 +69,14 @@ const useUserPuzzles = () => {
         }
     };
 
-    const addPuzzleToCollection = async (puzzleId: number) => {
+    const addPuzzleToCollection = async (puzzleId: number, options?: { markOwned?: boolean; markCompleted?: boolean }) => {
         setLoading(true);
         setError(null);
 
         try {
             await Client.UserPuzzles.addToCollection(puzzleId);
-            await getAllUserPuzzles(); // Refresh the list after adding
+            if (options?.markOwned) await Client.UserPuzzles.toggleOwned(puzzleId);
+            if (options?.markCompleted) await Client.UserPuzzles.markAsCompleted(puzzleId);
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || err.message || `Error adding puzzle with ID ${puzzleId} to collection`;
             setError(errorMsg);

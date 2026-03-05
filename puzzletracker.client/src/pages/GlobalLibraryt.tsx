@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 // Types
-import type { PuzzleFilters } from "../types/dto/puzzle.types";
+import type { Puzzle, PuzzleFilters } from "../types/dto/puzzle.types";
 import type { Series } from "../types/dto/series.types";
 
 // Hooks
@@ -12,9 +12,11 @@ import useSeries from "../hooks/useSeries";
 import useUserPuzzles from "../hooks/useUserPuzzles";
 
 // Components
+import AddToCollectionModal from "../components/AddToCollectionModal";
 import Pagination from "../components/Pagination";
 import PuzzleGrid from "../components/PuzzleGrid";
 import PuzzleList from "../components/PuzzleList";
+import RemoveFromCollectionModal from "../components/RemoveFromCollectionModal";
 import SortFilterBox from "../components/SortFilerBox";
 
 
@@ -35,6 +37,8 @@ const GlobalLibrary = () => {
 
     const [listView, setListView] = useState(true);
     const [showSortFilter, setShowSortFilter] = useState(false);
+    const [addModalPuzzle, setAddModalPuzzle] = useState<Puzzle | null>(null);
+    const [removeModalPuzzle, setRemoveModalPuzzle] = useState<Puzzle | null>(null);
 
     useEffect(() => {
         getAllPuzzles();
@@ -56,14 +60,28 @@ const GlobalLibrary = () => {
         await getAllPuzzles(updatedFilters);
     };
 
-    const handleAddToCollection = async (puzzleId: number) => {
-        await addPuzzleToCollection(puzzleId);
-        await Promise.all([getAllPuzzles(currentFilters), getAllUserPuzzles()]);
+    const handleAddToCollection = (puzzleId: number) => {
+        const puzzle = puzzles.find(p => p.puzzleId === puzzleId);
+        if (puzzle) setAddModalPuzzle(puzzle);
     };
 
-    const handleRemoveFromCollection = async (puzzleId: number) => {
-        await removePuzzleFromCollection(puzzleId);
+    const handleConfirmAdd = async (markOwned: boolean, markCompleted: boolean) => {
+        if (!addModalPuzzle) return;
+        await addPuzzleToCollection(addModalPuzzle.puzzleId, { markOwned, markCompleted });
         await Promise.all([getAllPuzzles(currentFilters), getAllUserPuzzles()]);
+        setAddModalPuzzle(null);
+    };
+
+    const handleRemoveFromCollection = (puzzleId: number) => {
+        const puzzle = puzzles.find(p => p.puzzleId === puzzleId);
+        if (puzzle) setRemoveModalPuzzle(puzzle);
+    };
+
+    const handleConfirmRemove = async () => {
+        if (!removeModalPuzzle) return;
+        await removePuzzleFromCollection(removeModalPuzzle.puzzleId);
+        await Promise.all([getAllPuzzles(currentFilters), getAllUserPuzzles()]);
+        setRemoveModalPuzzle(null);
     };
 
     const handleMarkCompleted = async (puzzleId: number) => {
@@ -77,8 +95,22 @@ const GlobalLibrary = () => {
     };
 
     return (
-        <div className="flex flex-col gap-4">
-            <h2 className="text-2xl font-bold">Global Puzzle Library</h2>
+        <div className="flex flex-col gap-4">            {addModalPuzzle && (
+                <AddToCollectionModal
+                    puzzle={addModalPuzzle}
+                    onConfirm={handleConfirmAdd}
+                    onCancel={() => setAddModalPuzzle(null)}
+                    loading={actionLoading}
+                />
+            )}
+            {removeModalPuzzle && (
+                <RemoveFromCollectionModal
+                    puzzle={removeModalPuzzle}
+                    onConfirm={handleConfirmRemove}
+                    onCancel={() => setRemoveModalPuzzle(null)}
+                    loading={actionLoading}
+                />
+            )}            <h2 className="text-2xl font-bold">Global Puzzle Library</h2>
             <div className="w-full flex gap-3">
                 <button
                     className={`py-1 p-2 text-sm rounded shadow ${listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
