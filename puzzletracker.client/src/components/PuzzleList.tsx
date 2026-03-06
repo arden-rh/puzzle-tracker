@@ -7,8 +7,11 @@ interface PuzzleListProps {
     error: string | null;
     collectionIds: Set<number>;
     completedIds: Set<number>;
+    ownedIds: Set<number>;
+    userLoggedIn: boolean;
     onMarkCompleted: (puzzleId: number) => void;
     onMarkIncomplete: (puzzleId: number) => void;
+    onToggleOwned: (puzzleId: number) => void;
     onAddToCollection?: (puzzleId: number) => void;
     onRemoveFromCollection?: (puzzleId: number) => void;
     actionLoading: boolean;
@@ -20,10 +23,13 @@ const PuzzleList: React.FC<PuzzleListProps> = ({
     error,
     collectionIds,
     completedIds,
+    ownedIds,
+    userLoggedIn,
     onMarkCompleted,
     onMarkIncomplete,
     onAddToCollection,
     onRemoveFromCollection,
+    onToggleOwned,
     actionLoading,
 }) => {
     if (loading) return <div>Loading puzzles...</div>;
@@ -32,9 +38,11 @@ const PuzzleList: React.FC<PuzzleListProps> = ({
     return (
         <div className="grid grid-cols-1 gap-4">
             {puzzles.length === 0 && <div>No puzzles found matching the criteria.</div>}
-            {puzzles.map((puzzle) => (
-                <PuzzleListEl puzzle={puzzle} key={puzzle.puzzleId} isInCollection={collectionIds.has(puzzle.puzzleId)} isCompleted={completedIds.has(puzzle.puzzleId)} onMarkCompleted={onMarkCompleted} onMarkIncomplete={onMarkIncomplete} onAddToCollection={onAddToCollection} onRemoveFromCollection={onRemoveFromCollection} actionLoading={actionLoading} />
-            ))}
+            <ul className="flex flex-col gap-4">
+                {puzzles.map((puzzle) => (
+                    <PuzzleListEl puzzle={puzzle} key={puzzle.puzzleId} isInCollection={collectionIds.has(puzzle.puzzleId)} isCompleted={completedIds.has(puzzle.puzzleId)} isOwned={ownedIds.has(puzzle.puzzleId)} onMarkCompleted={onMarkCompleted} onMarkIncomplete={onMarkIncomplete} onToggleOwned={onToggleOwned} onAddToCollection={onAddToCollection} onRemoveFromCollection={onRemoveFromCollection} actionLoading={actionLoading} userLoggedIn={userLoggedIn} />
+                ))}
+            </ul>
         </div>
     );
 };

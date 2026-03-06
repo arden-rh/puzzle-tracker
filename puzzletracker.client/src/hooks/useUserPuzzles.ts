@@ -108,9 +108,10 @@ const useUserPuzzles = () => {
         setError(null);
 
         try {
+            const inCollection = userPuzzles.some(p => p.puzzleId === puzzleId);
+            if (!inCollection) await Client.UserPuzzles.addToCollection(puzzleId);
             await Client.UserPuzzles.markAsCompleted(puzzleId);
-            await getAllUserPuzzles(); // Refresh the list after marking as completed
-
+            await getAllUserPuzzles();
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || err.message || `Error marking puzzle with ID ${puzzleId} as completed`;
             setError(errorMsg);
@@ -139,14 +140,16 @@ const useUserPuzzles = () => {
         setError(null);
 
         try {
+            const inCollection = userPuzzles.some(p => p.puzzleId === puzzleId);
+            if (!inCollection) await Client.UserPuzzles.addToCollection(puzzleId);
             await Client.UserPuzzles.toggleOwned(puzzleId);
-            await getAllUserPuzzles(); // Refresh the list after toggling owned status
+            await getAllUserPuzzles();
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || err.message || `Error toggling owned status for puzzle with ID ${puzzleId}`;
             setError(errorMsg);
         } finally {
             setLoading(false);
-        }   
+        }
     };
 
     const createCustomUserPuzzle = async (puzzle: UserCustomPuzzle) => {

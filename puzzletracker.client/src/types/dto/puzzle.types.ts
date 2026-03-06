@@ -67,6 +67,7 @@ export interface PuzzleFilters {
     pieceRanges?: string[];
     inCollection?: boolean;
     isCompleted?: boolean;
+    isOwned?: boolean,
     page?: number;
     pageSize?: number;
 }

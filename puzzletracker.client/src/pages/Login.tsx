@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useUser from '../hooks/useUser';
+import Button from '../components/Button';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -29,48 +30,42 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="login-container">
-            <h1>Login</h1>
-            <p>Please log in to your account to access the Puzzle Tracker.</p>
-            <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-                <h2>Login</h2>
+        <div className="flex flex-col items-center justify-center p-4 mt-8">
+            <h2 className='text-2xl'>Login</h2>
+            <p className='text-center'>Please log in to your account to access the Puzzle Tracker.</p>
+            <div className="bg-indigo-900 rounded shadow-lg p-6 w-full max-w-sm mt-6">
+                <h3 className='text-xl'>Login</h3>
                 <form onSubmit={handleLogin}>
-                    <div style={{ marginBottom: '15px' }}>
-                        <label style={{ display: 'block', marginBottom: '5px' }}>Email:</label>
+                    <div className="mb-4">
+                        <label className="block mb-1">Email:</label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                            className="rounded ring ring-indigo-300 p-2 w-full"
                             required
                         />
                     </div>
-                    <div style={{ marginBottom: '15px' }}>
-                        <label style={{ display: 'block', marginBottom: '5px' }}>Password:</label>
+                    <div className="mb-4">
+                        <label className="block mb-1">Password:</label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                            className="rounded ring ring-indigo-300 p-2 w-full"
                             required
                         />
                     </div>
-                    <button
+                    <Button
                         type="submit"
                         disabled={isLoading}
-                        style={{ width: '100%', padding: '10px', fontSize: '14px', cursor: 'pointer' }}
+                        className='w-full p-2 mt-4'
                     >
                         {isLoading ? 'Loading...' : 'Login'}
-                    </button>
+                    </Button>
                 </form>
                 {message && (
-                    <div style={{ 
-                        marginTop: '20px', 
-                        padding: '10px', 
-                        backgroundColor: message.startsWith('✅') ? '#d4edda' : '#f8d7da', 
-                        borderRadius: '4px',
-                        color: message.startsWith('✅') ? '#155724' : '#721c24'
-                    }}>
+                    <div className={`mt-4 p-2 rounded ${message.startsWith('✅') ? 'bg-indigo-100 text-green-800' : 'bg-indigo-100 text-red-800'}`}>
                         {message}
                     </div>
                 )}

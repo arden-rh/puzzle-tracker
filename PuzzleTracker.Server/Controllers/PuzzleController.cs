@@ -36,6 +36,7 @@ namespace PuzzleTracker.Server.Controllers
             [FromQuery] string? pieceRanges = null,
             [FromQuery] bool? inCollection = null,
             [FromQuery] bool? isCompleted = null,
+            [FromQuery] bool? isOwned = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20)
         {
@@ -155,8 +156,8 @@ namespace PuzzleTracker.Server.Controllers
                     IsComboPack = (p is JVHPuzzle) && ((JVHPuzzle)p).IsComboPack,
 
                     IsInUserCollection = userId != null && _context.UserPuzzles.Any(up => up.UserId == userId && up.PuzzleId == p.Id),
-                    IsCompletedByUser = userId != null && _context.UserPuzzles.Any(up => up.UserId == userId && up.PuzzleId == p.Id && up.IsCompleted)
-
+                    IsCompletedByUser = userId != null && _context.UserPuzzles.Any(up => up.UserId == userId && up.PuzzleId == p.Id && up.IsCompleted),
+                    IsOwnedByUser = userId != null && _context.UserPuzzles.Any(up => up.UserId == userId && up.PuzzleId == p.Id && up.IsOwned)
                 })
                 .ToListAsync();
 
@@ -191,6 +192,10 @@ namespace PuzzleTracker.Server.Controllers
                 if (isCompleted.HasValue && isCompleted.Value)
                 {
                     collection = collection.Where(p => p.IsCompletedByUser).ToList();
+                }
+                if (isOwned.HasValue && isOwned.Value)
+                {
+                    collection = collection.Where(p => p.IsOwnedByUser).ToList();
                 }
             }
 
@@ -248,7 +253,8 @@ namespace PuzzleTracker.Server.Controllers
                     Manufacturer = (p is OfficialPuzzle) ? ((OfficialPuzzle)p).Manufacturer : (p is JVHPuzzle) ? ((JVHPuzzle)p).Manufacturer : null,
                     IsComboPack = (p is JVHPuzzle) && ((JVHPuzzle)p).IsComboPack,
                     IsInUserCollection = userId != null && _context.UserPuzzles.Any(up => up.UserId == userId && up.PuzzleId == p.Id),
-                    IsCompletedByUser = userId != null && _context.UserPuzzles.Any(up => up.UserId == userId && up.PuzzleId == p.Id && up.IsCompleted)
+                    IsCompletedByUser = userId != null && _context.UserPuzzles.Any(up => up.UserId == userId && up.PuzzleId == p.Id && up.IsCompleted),
+                    IsOwnedByUser = userId != null && _context.UserPuzzles.Any(up => up.UserId == userId && up.PuzzleId == p.Id && up.IsOwned)
                 })
                 .FirstOrDefaultAsync();
             if (puzzle == null)

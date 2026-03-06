@@ -10,6 +10,7 @@ import useIllustrators from "../hooks/useIllustrators";
 import usePuzzles from "../hooks/usePuzzles";
 import useSeries from "../hooks/useSeries";
 import useUserPuzzles from "../hooks/useUserPuzzles";
+import useUser from "../hooks/useUser";
 
 // Components
 import AddToCollectionModal from "../components/AddToCollectionModal";
@@ -18,7 +19,8 @@ import PuzzleGrid from "../components/PuzzleGrid";
 import PuzzleList from "../components/PuzzleList";
 import RemoveFromCollectionModal from "../components/RemoveFromCollectionModal";
 import SearchBox from "../components/SearchBox";
-import SortFilterBox from "../components/SortFilerBox";
+import SortFilterBox from "../components/SortFilterBox";
+import Button from "../components/Button";
 
 
 const GlobalLibrary = () => {
@@ -26,17 +28,19 @@ const GlobalLibrary = () => {
     const { getAllBrands } = useBrands();
     const { getAllIllustrators } = useIllustrators();
     const { getAllSeries } = useSeries();
-    const { addPuzzleToCollection, removePuzzleFromCollection, markPuzzleAsCompleted, markPuzzleAsIncomplete, getAllUserPuzzles, userPuzzles, loading: actionLoading } = useUserPuzzles();
+    const { addPuzzleToCollection, removePuzzleFromCollection, markPuzzleAsCompleted, markPuzzleAsIncomplete, toggleOwnedStatus, getAllUserPuzzles, userPuzzles, loading: actionLoading } = useUserPuzzles();
+    const { user } = useUser();
 
     const collectionIds = new Set(userPuzzles.map(p => p.puzzleId));
     const completedIds = new Set(userPuzzles.filter(p => p.isCompleted).map(p => p.puzzleId));
+    const ownedIds = new Set(userPuzzles.filter(p => p.isOwned).map(p => p.puzzleId));
 
     const [listOfBrands, setListOfBrands] = useState<string[]>([]);
     const [listOfSeries, setListOfSeries] = useState<Series[]>([]);
     const [listOfIllustrators, setListOfIllustrators] = useState<string[]>([]);
     const [currentFilters, setCurrentFilters] = useState<PuzzleFilters>({});
 
-    const [listView, setListView] = useState(true);
+    const [listView, setListView] = useState(false);
     const [showSortFilter, setShowSortFilter] = useState(false);
     const [addModalPuzzle, setAddModalPuzzle] = useState<Puzzle | null>(null);
     const [removeModalPuzzle, setRemoveModalPuzzle] = useState<Puzzle | null>(null);
@@ -53,6 +57,11 @@ const GlobalLibrary = () => {
         setCurrentFilters({ ...filters, page: 1 }); // Reset to page 1 when filters change
         if (!isReset) setShowSortFilter(false);
         await getAllPuzzles({ ...filters, page: 1 });
+    };
+
+    const handleResetSearch = async () => {
+        setCurrentFilters({});
+        await getAllPuzzles({});
     };
 
     const handlePageChange = async (page: number) => {
@@ -81,19 +90,23 @@ const GlobalLibrary = () => {
     const handleConfirmRemove = async () => {
         if (!removeModalPuzzle) return;
         await removePuzzleFromCollection(removeModalPuzzle.puzzleId);
-        await Promise.all([getAllPuzzles(currentFilters), getAllUserPuzzles()]);
+        await getAllPuzzles(currentFilters);
         setRemoveModalPuzzle(null);
     };
 
     const handleMarkCompleted = async (puzzleId: number) => {
         await markPuzzleAsCompleted(puzzleId);
-        await getAllUserPuzzles();
     };
 
     const handleMarkIncomplete = async (puzzleId: number) => {
         await markPuzzleAsIncomplete(puzzleId);
-        await getAllUserPuzzles();
     };
+
+    const handleToggleOwned = async (puzzleId: number) => {
+        await toggleOwnedStatus(puzzleId);
+    };
+
+    const userLoggedIn = !!user;
 
     return (
         <div className="flex flex-col gap-4">
@@ -115,26 +128,26 @@ const GlobalLibrary = () => {
             )}            
             <h2 className="text-2xl font-bold">Global Puzzle Library</h2>
             <div className="w-full flex gap-3">
-                <button
-                    className={`py-1 p-2 text-sm rounded shadow ${listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
-                    onClick={() => setListView(true)}
-                >
-                    List View
-                </button>
-                <button
-                    className={`py-1 p-2 text-sm rounded shadow ${!listView ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                <Button
                     onClick={() => setListView(false)}
+                    theme={listView ? "secondary" : "primary"}
                 >
                     Grid View
-                </button>
-                <button
-                    className={`py-1 p-2 text-sm rounded shadow ${showSortFilter ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
+                </Button>
+                <Button
+                    onClick={() => setListView(true)}
+                    theme={listView ? "primary" : "secondary"}
+                >
+                    List View
+                </Button>
+                <Button
+                    theme={showSortFilter ? "primary" : "secondary"}
                     onClick={() => setShowSortFilter(!showSortFilter)}
                 >
                     Sort & Filter
-                </button>
+                </Button>
             </div>
-            <SearchBox onSearch={(query) => handleApplyFilters({ ...currentFilters, searchQuery: query })} />
+            <SearchBox onSearch={(query) => handleApplyFilters({ ...currentFilters, searchQuery: query })} onReset={handleResetSearch} />
             <div className={showSortFilter ? "" : "hidden"}>
                 <SortFilterBox 
                     listOfSeries={listOfSeries} 
@@ -144,14 +157,14 @@ const GlobalLibrary = () => {
                 />
             </div>
 
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-indigo-300">
                 Page {currentPage} of {totalPages} | Showing {puzzles.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount} puzzles
             </div>
 
             {listView ? (
-                <PuzzleList puzzles={puzzles} loading={loading} error={error} collectionIds={collectionIds} completedIds={completedIds} onMarkCompleted={handleMarkCompleted} onMarkIncomplete={handleMarkIncomplete} onAddToCollection={handleAddToCollection} onRemoveFromCollection={handleRemoveFromCollection} actionLoading={actionLoading} />
+                <PuzzleList puzzles={puzzles} loading={loading} error={error} collectionIds={collectionIds} completedIds={completedIds} ownedIds={ownedIds} onMarkCompleted={handleMarkCompleted} onMarkIncomplete={handleMarkIncomplete} onToggleOwned={handleToggleOwned} onAddToCollection={handleAddToCollection} onRemoveFromCollection={handleRemoveFromCollection} actionLoading={actionLoading} userLoggedIn={userLoggedIn} />
             ) : (
-                <PuzzleGrid puzzles={puzzles} loading={loading} error={error} collectionIds={collectionIds} completedIds={completedIds} onMarkCompleted={handleMarkCompleted} onMarkIncomplete={handleMarkIncomplete} onAddToCollection={handleAddToCollection} onRemoveFromCollection={handleRemoveFromCollection} actionLoading={actionLoading} />
+                <PuzzleGrid puzzles={puzzles} loading={loading} error={error} collectionIds={collectionIds} completedIds={completedIds} ownedIds={ownedIds} onMarkCompleted={handleMarkCompleted} onMarkIncomplete={handleMarkIncomplete} onToggleOwned={handleToggleOwned} onAddToCollection={handleAddToCollection} onRemoveFromCollection={handleRemoveFromCollection} actionLoading={actionLoading} userLoggedIn={userLoggedIn} />
             )}
 
             <Pagination 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Puzzle } from "../types/dto/puzzle.types";
+import Button from "./Button";
 
 interface AddToCollectionModalProps {
     puzzle: Puzzle;
@@ -14,10 +15,10 @@ const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({ puzzle, onC
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded shadow-lg p-6 w-full max-w-sm mx-4">
+            <div className="bg-indigo-800 rounded shadow-lg p-6 w-full max-w-sm mx-4">
                 <h2 className="text-lg font-bold mb-1">Add to Collection</h2>
-                <p className="text-gray-600 text-sm mb-4">
-                    <span className="font-medium text-black">{puzzle.nameEnglish}</span>
+                <p className="text-indigo-300 text-sm mb-4">
+                    <span className="font-medium text-indigo-50">{puzzle.nameEnglish}</span>
                     {" · "}{puzzle.brandName}{" · "}{puzzle.numberOfPieces} pieces
                 </p>
                 <div className="flex flex-col gap-3 mb-6">
@@ -41,20 +42,21 @@ const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({ puzzle, onC
                     </label>
                 </div>
                 <div className="flex gap-2 justify-end">
-                    <button
-                        className="px-4 py-2 text-sm rounded bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
-                        onClick={onCancel}
-                        disabled={loading}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        className="px-4 py-2 text-sm rounded bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50"
+                    <Button
+                        className="px-4 py-2 disabled:opacity-50"
                         onClick={() => onConfirm(markOwned, markCompleted)}
                         disabled={loading}
                     >
                         {loading ? "Adding..." : "Add to Collection"}
-                    </button>
+                    </Button>
+                    <Button
+                        className="px-4 py-2 disabled:opacity-50"
+                        theme="secondary"
+                        onClick={onCancel}
+                        disabled={loading}
+                    >
+                        Cancel
+                    </Button>
                 </div>
             </div>
         </div>

@@ -7,15 +7,14 @@ import useUserPuzzles from "../hooks/useUserPuzzles";
 
 // Components
 import SearchBox from "../components/SearchBox";
-import PuzzleList from "../components/PuzzleList";
+import PuzzleGrid from "../components/PuzzleGrid";
 import RemoveFromCollectionModal from "../components/RemoveFromCollectionModal";
 
 const ProfileCollection = () => {
 
-    const { getAllUserPuzzles, markPuzzleAsCompleted, markPuzzleAsIncomplete, removePuzzleFromCollection, userPuzzles, loading, error, totalCount, currentPage, totalPages, pageSize } = useUserPuzzles();
+    const { getAllUserPuzzles, markPuzzleAsCompleted, markPuzzleAsIncomplete, toggleOwnedStatus, removePuzzleFromCollection, userPuzzles, loading, error, totalCount, currentPage, totalPages, pageSize } = useUserPuzzles();
 
     const [currentQuery, setCurrentQuery] = useState<string>();
-
 
     const handleMarkCompleted = async (puzzleId: number) => {
         await markPuzzleAsCompleted(puzzleId);
@@ -24,6 +23,11 @@ const ProfileCollection = () => {
 
     const handleMarkIncomplete = async (puzzleId: number) => {
         await markPuzzleAsIncomplete(puzzleId);
+        await getAllUserPuzzles();
+    };
+    
+    const handleToggleOwned = async (puzzleId: number) => {
+        await toggleOwnedStatus(puzzleId);
         await getAllUserPuzzles();
     };
 
@@ -43,8 +47,14 @@ const ProfileCollection = () => {
         await getAllUserPuzzles(query);
     };
 
+    const handleResetSearch = async () => {
+        setCurrentQuery("");
+        await getAllUserPuzzles();
+    };
+
     const collectionIds = new Set(userPuzzles.map(p => p.puzzleId));
     const completedIds = new Set(userPuzzles.filter(p => p.isCompleted).map(p => p.puzzleId));
+    const ownedIds = new Set(userPuzzles.filter(p => p.isOwned).map(p => p.puzzleId));
     const [removeModalPuzzle, setRemoveModalPuzzle] = useState<UserPuzzle | null>(null);
 
     useEffect(() => {
@@ -52,7 +62,7 @@ const ProfileCollection = () => {
     }, []);
 
     return (
-        <div>
+        <div className="flex flex-col gap-4">
             {removeModalPuzzle && (
                 <RemoveFromCollectionModal
                     puzzle={removeModalPuzzle}
@@ -61,12 +71,12 @@ const ProfileCollection = () => {
                     loading={loading}
                 />
             )}
-            <h2>Profile Collection Page</h2>
-            <SearchBox onSearch={handleApplySearchQuery} initialQuery={currentQuery} />
-            <div className="text-sm text-gray-600">
+            <h2 className="text-xl font-bold">Profile Collection Page</h2>
+            <SearchBox onSearch={handleApplySearchQuery} initialQuery={currentQuery} onReset={handleResetSearch} />
+            <div className="text-sm text-indigo-300">
                 Page {currentPage} of {totalPages} | Showing {userPuzzles.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount} puzzles
             </div>
-            <PuzzleList puzzles={userPuzzles} loading={loading} error={error} collectionIds={collectionIds} completedIds={completedIds} onMarkCompleted={handleMarkCompleted} onMarkIncomplete={handleMarkIncomplete} onRemoveFromCollection={handleRemoveFromCollection} actionLoading={false} />
+            <PuzzleGrid puzzles={userPuzzles} loading={loading} error={error} collectionIds={collectionIds} completedIds={completedIds} ownedIds={ownedIds} onMarkCompleted={handleMarkCompleted} onMarkIncomplete={handleMarkIncomplete} onToggleOwned={handleToggleOwned} onRemoveFromCollection={handleRemoveFromCollection} actionLoading={false} userLoggedIn={true} />
         </div>
     );
 }

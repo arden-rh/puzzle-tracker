@@ -1,13 +1,17 @@
-import type { Puzzle } from "../types/dto/puzzle.types";
+import type { Puzzle, UserPuzzle } from "../types/dto/puzzle.types";
+import Button from "./Button";
 
 interface PuzzleCardProps {
-    puzzle: Puzzle;
+    puzzle: Puzzle | UserPuzzle;
     isInCollection: boolean;
     isCompleted: boolean;
+    isOwned: boolean;
+    userLoggedIn: boolean;
     onMarkCompleted: (puzzleId: number) => void;
     onMarkIncomplete: (puzzleId: number) => void;
-    onAddToCollection: (puzzleId: number) => void;
-    onRemoveFromCollection: (puzzleId: number) => void;
+    onToggleOwned: (puzzleId: number) => void;
+    onAddToCollection?: (puzzleId: number) => void;
+    onRemoveFromCollection?: (puzzleId: number) => void;
     actionLoading: boolean;
 }
 
@@ -15,56 +19,100 @@ const PuzzleCard: React.FC<PuzzleCardProps> = ({
     puzzle,
     isInCollection,
     isCompleted,
+    isOwned,
     onMarkCompleted,
     onMarkIncomplete,
+    onToggleOwned,
     onAddToCollection,
     onRemoveFromCollection,
-    actionLoading
+    userLoggedIn,
+    actionLoading,
 }) => {
+    const collectionAction = isInCollection ? onRemoveFromCollection : onAddToCollection;
 
     return (
-        <div className="w-40 p-4 shadow-md bg-white flex flex-col justify-between">
-            <h3 className="text-center">{puzzle.nameEnglish}</h3>
-            <div>
-                <p className="text-sm text-gray-600">{puzzle.brandName}</p>
-                <p className="text-sm text-gray-600">{puzzle.numberOfPieces} pieces</p>
+        <div className="relative w-full p-3 shadow rounded bg-indigo-900/90 flex flex-col gap-2 justify-between tracking-wide">
+            <p className="text-sm bg-indigo-700/40 rounded ring ring-indigo-500 p-1 pr-2 text-white font-medium absolute top-2 right-2"><span className="grayscale">🧩</span>{puzzle.numberOfPieces}</p>
+            <div className="flex flex-col gap-0.5">
+                <h3 className="text-indigo-50 font-medium max-w-[65%]">{puzzle.nameEnglish}</h3>
+                {puzzle.puzzleType == "JVH" && <p className="text-sm text-indigo-400">{puzzle.nameLocal}</p>}
             </div>
-            <div>
-                {isCompleted ? (
-                    <button
-                        className="bg-gray-500 text-white px-2 py-1 rounded mr-2 text-sm"
-                        onClick={() => onMarkIncomplete(puzzle.puzzleId)}
-                        disabled={actionLoading}
-                    >
-                        Mark as Incomplete
-                    </button>
-                ) : (
-                    <button
-                        className="bg-blue-500 text-white px-2 py-1 rounded mr-2 text-sm"
-                        onClick={() => onMarkCompleted(puzzle.puzzleId)}
-                        disabled={actionLoading}
-                    >
-                    Mark as Completed
-                </button>
-                )}
-                {!isInCollection ? (
-                    <button
-                        className="bg-yellow-500 text-white px-2 py-1 rounded text-sm"
-                        onClick={() => onAddToCollection(puzzle.puzzleId)}
-                        disabled={actionLoading}
-                    >
-                    Add to Collection
-                </button>
-                ) : (
-                    <button
-                        className="bg-red-500 text-white px-2 py-1 rounded text-sm"
-                        onClick={() => onRemoveFromCollection(puzzle.puzzleId)}
-                        disabled={actionLoading}
-                    >
-                    Remove from Collection
-                </button>
-                )}
+            <div className="flex flex-col gap-0.5">
+                <p className="text-[0.95rem] text-indigo-50 font-medium">{puzzle.brandName}</p>
+                {puzzle.releaseDate && <p className="text-sm text-indigo-400"><span className="text-indigo-50">Release date:</span> {puzzle.releaseDate}</p>}
+                {puzzle.seriesName && <p className="text-sm text-indigo-400"><span className="text-indigo-50">Series:</span> {puzzle.seriesName}</p>}
+                {puzzle.illustratorName && <p className="text-sm text-indigo-400"><span className="text-indigo-50">Illustrator:</span> {puzzle.illustratorName}</p>}
+                {puzzle.productNumber && <p className="text-sm text-indigo-400"><span className="text-indigo-50">Product number:</span> {puzzle.productNumber}</p>}
             </div>
+            {userLoggedIn && <div className="flex flex-col gap-0.5">
+                <h4 className="font-medium">Status</h4>
+                <div className="status grid grid-cols-[max-content_auto] gap-x-3 gap-y-2 items-center">
+                    <span className="text-[0.95rem]">Completion:</span>
+                    {isCompleted ? (
+                        <Button
+                            onClick={() => onMarkIncomplete(puzzle.puzzleId)}
+                            disabled={actionLoading}
+                            theme="primary"
+                            className="justify-self-start"
+                        >
+                            Completed
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={() => onMarkCompleted(puzzle.puzzleId)}
+                            disabled={actionLoading}
+                            theme="secondary"
+                            className="justify-self-start"
+                        >
+                            Not Completed
+                        </Button>
+                    )}
+                    <span className="text-[0.95rem]">Ownership:</span>
+                    {isOwned ? (
+                        <Button
+                            className="justify-self-start"
+                            onClick={() => onToggleOwned(puzzle.puzzleId)}
+                            theme="primary"
+                            disabled={actionLoading}
+                        >
+                            Owned
+                        </Button>
+                    ) : (
+                        <Button
+                            className="justify-self-start"
+                            onClick={() => onToggleOwned(puzzle.puzzleId)}
+                            theme="secondary"
+                            disabled={actionLoading}
+                        >
+                            Not Owned
+                        </Button>
+                    )}
+                    {collectionAction && (
+                        <>
+                            <span className="text-[0.95rem]">Collection:</span>
+                            {isInCollection ? (
+                                <Button
+                                    className="justify-self-start"
+                                    onClick={() => collectionAction(puzzle.puzzleId)}
+                                    theme="primary"
+                                    disabled={actionLoading}
+                                >
+                                    Remove
+                                </Button>
+                            ) : (
+                                <Button
+                                    className="justify-self-start"
+                                    onClick={() => collectionAction(puzzle.puzzleId)}
+                                    theme="secondary"
+                                    disabled={actionLoading}
+                                >
+                                    Add
+                                </Button>
+                            )}
+                        </>
+                    )}
+                </div>
+            </div>}
         </div>
     );
 };

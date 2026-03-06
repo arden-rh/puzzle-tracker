@@ -27,5 +27,7 @@
             // Ownership Check
             public bool IsInUserCollection { get; set; }
             public bool IsCompletedByUser { get; set; }
+
+            public bool IsOwnedByUser { get; set; }
     }
 }

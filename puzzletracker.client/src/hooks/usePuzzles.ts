@@ -30,6 +30,7 @@ const usePuzzles = () => {
                 if (filters.searchQuery) params.append('searchQuery', filters.searchQuery);
                 if (filters.inCollection !== undefined) params.append('inCollection', String(filters.inCollection));
                 if (filters.isCompleted !== undefined) params.append('isCompleted', String(filters.isCompleted));
+                if (filters.isOwned !== undefined) params.append('isOwned', String(filters.isOwned));
                 if (filters.page) params.append('page', String(filters.page));
                 if (filters.pageSize) params.append('pageSize', String(filters.pageSize));
             }

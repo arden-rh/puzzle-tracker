@@ -1,19 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Parkinsans:wght@300..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --header-font: 'Lexend', sans-serif;
+  --body-font: 'Nunito', sans-serif;
+}
 
 @layer base {
-  * {
-    --header-font: 'Lexend', sans-serif;
-    --body-font: 'Nunito', sans-serif;
-    --accent-font: 'Parkinsans', cursive;
-  }
-
   h1, h2, h3, h4, h5, h6 {
-    font-weight: 600;
+    font-weight: 500;
     font-family: var(--header-font);
   }
 }
+
 
 :root {
   font-family: var(--body-font);
@@ -21,8 +20,8 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: var(--color-indigo-50);
+  background-color: var(--color-indigo-950);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -34,7 +33,6 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  color: black;
   align-items: center;
   justify-content: center;
 }
