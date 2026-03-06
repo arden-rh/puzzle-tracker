@@ -24,6 +24,7 @@ namespace PuzzleTracker.Server.Controllers
             _signInManager = signInManager;
             _context = context;
         }
+        [Authorize]
         [HttpGet("profile")]
         public async Task<ActionResult<UserProfileDto>> GetCurrentUserProfile()
         {
@@ -43,6 +44,7 @@ namespace PuzzleTracker.Server.Controllers
                     Email = u.Email,
                     TotalPuzzlesOwned = u.UserPuzzles.Count(up => up.IsOwned),
                     TotalPuzzlesCompleted = u.UserPuzzles.Count(up => up.IsCompleted),
+                    TotalPuzzlesInCollection = u.UserPuzzles.Count(),
                     DisplayName = u.DisplayName,
                     ProfilePicUrl = u.ProfilePicUrl,
                     Bio = u.Bio
@@ -55,6 +57,64 @@ namespace PuzzleTracker.Server.Controllers
             }
 
             return Ok(userProfile);
+        }
+
+        [Authorize]
+        [HttpPut("profile/update")]
+        public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileDto updateDto)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { error = "Unauthorized" });
+            }
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            user.DisplayName = updateDto.DisplayName;
+            user.ProfilePicUrl = updateDto.ProfilePicUrl;
+            user.Bio = updateDto.Bio;
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                return Ok(new { message = "Profile updated successfully" });
+            }
+            return BadRequest(new { message = "Failed to update profile", errors = result.Errors.Select(e => e.Description) });
+        }
+
+        public class ChangePasswordDto
+        {
+            public string CurrentPassword { get; set; }
+            public string NewPassword { get; set; }
+            public string NewPasswordConfirm { get; set; }
+        }
+
+        [Authorize]
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { error = "Unauthorized" });
+            }
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            if (changePasswordDto.NewPassword != changePasswordDto.NewPasswordConfirm)
+            {
+                return BadRequest(new { message = "New passwords do not match" });
+            }
+            var result = await _userManager.ChangePasswordAsync(user, changePasswordDto.CurrentPassword, changePasswordDto.NewPassword);
+            if (result.Succeeded)
+            {
+                return Ok(new { message = "Password changed successfully" });
+            }
+            return BadRequest(new { message = "Failed to change password", errors = result.Errors.Select(e => e.Description) });
         }
 
         [HttpPost("login")]

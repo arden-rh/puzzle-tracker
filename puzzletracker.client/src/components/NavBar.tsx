@@ -9,7 +9,7 @@ const NavBar = () => {
                 <h1 className="text-lg lg:text-xl font-bold text-indigo-200">
                     <a href="/">The Puzzle Library</a>
                 </h1>
-                <div className="flex items-center text-sm uppercase tracking-wider font-medium font-body-font">
+                <div className="flex items-center text-sm uppercase tracking-wider font-medium font-poppins">
                     <a href="/puzzles" className="mr-3">Puzzles</a>
                     {user ? (
                         <a href="/profile">Profile</a>

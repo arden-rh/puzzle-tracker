@@ -32,12 +32,12 @@ const PuzzleList: React.FC<PuzzleListProps> = ({
     onToggleOwned,
     actionLoading,
 }) => {
-    if (loading) return <div>Loading puzzles...</div>;
-    if (error) return <div>Error loading puzzles: {error}</div>;
+    if (loading) return <div className="w-full flex items-center justify-center text-center"><span>Loading...</span></div>;
+    if (error) return <div className="w-full flex items-center justify-center text-center"><span>Error loading puzzles: {error}</span></div>;
 
     return (
         <div className="grid grid-cols-1 gap-4">
-            {puzzles.length === 0 && <div>No puzzles found matching the criteria.</div>}
+            {puzzles.length === 0 && <div className="w-full flex items-center justify-center text-center"><span>No puzzles found matching the criteria.</span></div>}
             <ul className="flex flex-col gap-4">
                 {puzzles.map((puzzle) => (
                     <PuzzleListEl puzzle={puzzle} key={puzzle.puzzleId} isInCollection={collectionIds.has(puzzle.puzzleId)} isCompleted={completedIds.has(puzzle.puzzleId)} isOwned={ownedIds.has(puzzle.puzzleId)} onMarkCompleted={onMarkCompleted} onMarkIncomplete={onMarkIncomplete} onToggleOwned={onToggleOwned} onAddToCollection={onAddToCollection} onRemoveFromCollection={onRemoveFromCollection} actionLoading={actionLoading} userLoggedIn={userLoggedIn} />

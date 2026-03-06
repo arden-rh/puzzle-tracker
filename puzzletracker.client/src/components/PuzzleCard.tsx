@@ -7,6 +7,7 @@ interface PuzzleCardProps {
     isInCollection: boolean;
     isCompleted: boolean;
     isOwned: boolean;
+    isCustomPuzzle?: boolean;
     userLoggedIn: boolean;
     onMarkCompleted: (puzzleId: number) => void;
     onMarkIncomplete: (puzzleId: number) => void;
@@ -28,6 +29,7 @@ const PuzzleCard: React.FC<PuzzleCardProps> = ({
     onRemoveFromCollection,
     userLoggedIn,
     actionLoading,
+    isCustomPuzzle = false,
 }) => {
 
     const navigate = useNavigate();
@@ -113,6 +115,19 @@ const PuzzleCard: React.FC<PuzzleCardProps> = ({
                                     Add
                                 </Button>
                             )}
+                        </>
+                    )}
+                    {isCustomPuzzle && (
+                        <>
+                            <span className="text-[0.95rem]">Custom Puzzle:</span>
+                            <Button
+                                className="justify-self-start"
+                                onClick={() => navigate(`/puzzles/${puzzle.puzzleId}/edit`)}
+                                theme="secondary"
+                                disabled={actionLoading}
+                            >
+                                Edit
+                            </Button>
                         </>
                     )}
                 </div>

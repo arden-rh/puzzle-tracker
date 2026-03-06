@@ -6,7 +6,7 @@ import type { Illustrator } from '../types/dto/illustrator.types';
 import type { PaginatedResult } from '../types/dto/paginated-result.types';
 import type { Series } from '../types/dto/series.types';
 import type { UserPuzzle, Puzzle, UserCustomPuzzle, UpdateUserCustomPuzzle } from '../types/dto/puzzle.types';
-import type { UserProfile } from '../types/dto/user-profile.types';
+import type { UserProfile, UpdateUserProfile } from '../types/dto/user-profile.types';
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:7110/api';
 
@@ -39,6 +39,8 @@ const requests = {
 
 const Account = {
     currentUserProfile: () => requests.get<UserProfile>('/account/profile'),
+    updateUserProfile: (profileData: UpdateUserProfile) => requests.put<UserProfile>('/account/profile/update', profileData),
+    updatePassword: (currentPassword: string, newPassword: string, confirmNewPassword: string) => requests.put('/account/change-password', { currentPassword, newPassword, confirmNewPassword }),
     login: (email: string, password: string) => requests.post<void>('/account/login', { email, password }),
     logout: () => requests.post<void>('/account/logout', {}),
     register: (email: string, password: string, confirmPassword: string, displayName?: string) => requests.post<void>('/account/register', { email, password, confirmPassword, displayName })
@@ -63,8 +65,8 @@ const UserPuzzles = {
     markAsCompleted: (puzzleId: number) => requests.post(`/user-puzzles/complete/${puzzleId}`, {}),
     markAsIncomplete: (puzzleId: number) => requests.post(`/user-puzzles/incomplete/${puzzleId}`, {}),
     toggleOwned: (puzzleId: number) => requests.post(`/user-puzzles/toggle-owned/${puzzleId}`, {}),
-    create: (puzzle: UserCustomPuzzle) => requests.post('/user-puzzles/create', puzzle),
-    update: (puzzle: UpdateUserCustomPuzzle) => requests.put(`/user-puzzles/${puzzle.userPuzzleId}`, puzzle),
+    createCustom: (puzzle: UserCustomPuzzle) => requests.post('/user-puzzles/custom/create', puzzle),
+    updateCustom: (puzzleId: number, puzzle: UpdateUserCustomPuzzle) => requests.put(`/user-puzzles/custom/${puzzleId}`, puzzle),
     delete: (puzzleId: number) => requests.delete(`/user-puzzles/remove/${puzzleId}`)
 };
 

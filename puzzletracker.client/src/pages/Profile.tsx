@@ -1,10 +1,15 @@
+import { useEffect } from 'react';
 import Button from '../components/Button';
 import useUser from '../hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
-    const { user, logout } = useUser();
+    const { user, logout, refreshUserProfile } = useUser();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        refreshUserProfile();
+    }, []);
 
     const handleLogout = async () => {
         try {
@@ -15,22 +20,36 @@ const Profile = () => {
         }
     };
 
+    console.log("user", user);
+
     if (!user) {
-        return <div>Loading...</div>;
+        return <div className='w-full flex items-center justify-center text-center'><span>Loading...</span></div>;
     }
 
     return (
         <div className="flex flex-col gap-4 max-w-2xl mx-auto md:p-4">
             <h2>Profile Page</h2>
-            <div className="bg-indigo-900/90 p-4 rounded shadow">
-                <h3 className='mb-2'>Welcome, {user.displayName || user.name}!</h3>
-                <p><strong>Email:</strong> {user.email}</p>
-                <p><strong>Display Name:</strong> {user.displayName || 'Not set'}</p>
-                <p><strong>Puzzles Owned:</strong> {user.totalPuzzlesOwned}</p>
-                <p><strong>Puzzles Completed:</strong> {user.totalPuzzlesCompleted}</p>
-                {user.bio && (
-                    <p><strong>Bio:</strong> {user.bio}</p>
-                )}
+            <div className='flex gap-4 items-center justify-center px-4'>
+                <p className='mb-2 font-medium text-lg'>Welcome, {user.displayName || user.name}!</p>
+                {user.profilePicUrl && <img src={user.profilePicUrl} alt="Profile" className="w-28 h-28 rounded-full mb-4 shadow-md ring ring-indigo-900" />}
+            </div>
+            <div className="bg-indigo-900/90 p-4 rounded shadow flex flex-col gap-2 font-light">
+                <div className='font-poppins tracking-widest text-indigo-50'>
+                    <p><span className='uppercase font-medium text-indigo-300 mr-2'>Email:</span>{user.email}</p>
+                    <p><span className='uppercase font-medium text-indigo-300 mr-2'>Display Name:</span>{user.displayName || 'Not set'}</p>
+                    {user.bio && (
+                        <div className='flex flex-col'>
+                            <span className='uppercase font-medium text-indigo-300'>Bio:</span>
+                            <p>{user.bio}</p>
+                        </div>
+                    )}
+                </div>
+                <div className='font-poppins tracking-widest text-indigo-50'>
+                    <h3 className="mb-1 uppercase">Statistics</h3>
+                    <p><span className='uppercase font-medium text-indigo-300 mr-2'>In Collection:</span>{user.totalPuzzlesInCollection}</p>
+                    <p><span className='uppercase font-medium text-indigo-300 mr-2'>Owned:</span>{user.totalPuzzlesOwned}</p>
+                    <p><span className='uppercase font-medium text-indigo-300 mr-2'>Completed:</span>{user.totalPuzzlesCompleted}</p>
+                </div>
             </div>
             <div className='flex flex-wrap justify-start gap-2'>
                 <Button
@@ -43,16 +62,16 @@ const Profile = () => {
                 >
                     Add Puzzle
                 </Button>
+
                 <Button
                     onClick={() => navigate('/profile/edit')}
-                    disabled={true} // Disable until edit profile page is implemented
-                    className='disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-gray-300'
+                    theme="secondary"
                 >
                     Edit Profile
                 </Button>
                 <Button
                     onClick={handleLogout}
-                    theme="primary"
+                    theme="secondary"
                 >
                     Logout
                 </Button>

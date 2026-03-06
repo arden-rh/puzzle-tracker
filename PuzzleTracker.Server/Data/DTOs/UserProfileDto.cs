@@ -9,6 +9,7 @@
         // These are calculated fields that will be populated in the controller
         public int TotalPuzzlesOwned { get; set; }
         public int TotalPuzzlesCompleted { get; set; }
+        public int TotalPuzzlesInCollection { get; set; }
 
         // Optional profile fields
         public string? DisplayName { get; set; }

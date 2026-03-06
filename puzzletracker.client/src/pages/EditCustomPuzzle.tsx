@@ -1,12 +1,16 @@
 import { useState } from "react";
 
-import type { UserCustomPuzzle } from "../types/dto/puzzle.types";
+import type { UpdateUserCustomPuzzle, UpdateUserCustomPuzzle } from "../types/dto/puzzle.types";
 
 import useUserPuzzles from "../hooks/useUserPuzzles";
+import { useParams } from "react-router-dom";
 
-const AddCustomPuzzle = () => {
+const EditCustomPuzzle = () => {
 
-    const { createCustomUserPuzzle } = useUserPuzzles();
+    const { id } = useParams<{ id: string }>();
+    const puzzleId = id || "";
+
+    const { updateCustomUserPuzzle } = useUserPuzzles();
 
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -51,7 +55,7 @@ const AddCustomPuzzle = () => {
 
         if (!isValid) return;
 
-        const newPuzzle: UserCustomPuzzle = {
+        const updatedPuzzle: UpdateUserCustomPuzzle = {
             nameEnglish,
             brandName: brandName.trim() || "Unknown Brand",
             numberOfPieces: numberOfPieces.trim(),
@@ -66,13 +70,13 @@ const AddCustomPuzzle = () => {
 
         setLoading(true);
 
-        createCustomUserPuzzle(newPuzzle)
+        updateCustomUserPuzzle(Number(puzzleId), updatedPuzzle)
             .then(() => {
-                setSuccessMessage("Puzzle added successfully!");
+                setSuccessMessage("Puzzle updated successfully!");
                 setLoading(false);
             })
             .catch((error) => {
-                setError("Failed to add puzzle. Please try again.");
+                setError("Failed to update puzzle. Please try again.");
                 setLoading(false);
             });
     }
@@ -81,7 +85,7 @@ const AddCustomPuzzle = () => {
     return (
 
         <div className="">
-            <h2>Add Custom Puzzle</h2>
+            <h2>Edit Custom Puzzle</h2>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-2">
                 <div>
@@ -141,4 +145,4 @@ const AddCustomPuzzle = () => {
     );
 }
 
-export default AddCustomPuzzle;
+export default EditCustomPuzzle;

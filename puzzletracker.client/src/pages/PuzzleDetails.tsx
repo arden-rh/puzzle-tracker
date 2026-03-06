@@ -41,7 +41,7 @@ const PuzzleDetails = () => {
         <div className="puzzle-details flex flex-col gap-3 w-full max-w-3xl m-auto md:items-center">
             <h2 className="text-xl font-bold">Puzzle Details</h2>
             <div>
-                {loading && <p>Loading...</p>}
+                {loading && <div className="w-full flex items-center justify-center text-center"><span>Loading...</span></div>}
                 {error && <p className="text-red-500">{error}</p>}
 
                 {puzzle && (

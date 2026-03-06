@@ -23,7 +23,7 @@ const Button: React.FC<ButtonProps> = ({ onClick, disabled = false, children, cl
             type={type}
             onClick={onClick}
             disabled={disabled}
-            className={`px-2 py-1 rounded text-sm shadow cursor-pointer ${themeClass} ${className}`}
+            className={`px-2 py-1 rounded text-sm shadow cursor-pointer font-poppins ${themeClass} ${className}`}
         >
             {children}
         </button>

@@ -157,7 +157,7 @@ const useUserPuzzles = () => {
         setError(null);
 
         try {
-            await Client.UserPuzzles.create(puzzle);
+            await Client.UserPuzzles.createCustom(puzzle);
             await getAllUserPuzzles(); // Refresh the list after creating a new custom puzzle
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || err.message || `Error creating custom puzzle`;
@@ -168,12 +168,12 @@ const useUserPuzzles = () => {
     };
 
     // TODO: Two separate functions for updating user-created puzzles vs. updating collection status of any puzzle?
-    const updateCustomUserPuzzle = async (puzzle: UpdateUserCustomPuzzle) => {
+    const updateCustomUserPuzzle = async (puzzleId: number, puzzle: UpdateUserCustomPuzzle) => {
         setLoading(true);
         setError(null);
 
         try {
-            await Client.UserPuzzles.update(puzzle);
+            await Client.UserPuzzles.updateCustom(puzzleId, puzzle);
             await getAllUserPuzzles(); // Refresh the list after updating a custom puzzle
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || err.message || `Error updating custom puzzle`;

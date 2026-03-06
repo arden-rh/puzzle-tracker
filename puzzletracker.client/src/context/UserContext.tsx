@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { useState, useEffect, createContext } from "react";
 import Client from "../api/Client";
-import type { UserProfile } from "../types/dto/user-profile.types";
+import type { UserProfile, UpdateUserProfile } from "../types/dto/user-profile.types";
 
 interface UserContextValues {
     user: UserProfile | null;
@@ -10,6 +10,7 @@ interface UserContextValues {
     logout: () => void;
     refreshUserProfile: () => Promise<void>;
     register: (email: string, password: string, confirmPassword: string, displayName?: string) => Promise<void>;
+    updateUserProfile: (profileData: UpdateUserProfile) => Promise<void>;
 }
 
 interface UserContextProps {
@@ -30,6 +31,15 @@ export const UserProvider: React.FC<UserContextProps> = ({ children }) => {
         } catch (error) {
             console.error("Error fetching user profile:", error);
             setUser(null);
+        }
+    };
+
+        const updateUserProfile = async (profileData: UpdateUserProfile) => {
+        const updatedProfile = await Client.Account.updateUserProfile(profileData);
+        if (updatedProfile) {
+            setUser(updatedProfile);
+        } else {
+            await refreshUserProfile();
         }
     };
 
@@ -72,11 +82,11 @@ export const UserProvider: React.FC<UserContextProps> = ({ children }) => {
     }, []);
 
     if (loading) {
-        return <div>Loading...</div>;
+        return <div className="w-full flex items-center justify-center text-center"><span>Loading...</span></div>;
     }
 
     return (
-        <UserContext.Provider value={{ user, loading, logout, refreshUserProfile, login, register }}>
+        <UserContext.Provider value={{ user, loading, logout, refreshUserProfile, login, register, updateUserProfile }}>
             {children}
         </UserContext.Provider>
     );

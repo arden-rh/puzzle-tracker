@@ -6,7 +6,7 @@ const ProtectedRoute = () => {
     const { user, loading } = useUser();
     const location = useLocation();
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div className="w-full flex items-center justify-center text-center"><span>Loading...</span></div>;
 
     if (!user) {
         return <Navigate to="/login" state={{ from: location }} replace />;

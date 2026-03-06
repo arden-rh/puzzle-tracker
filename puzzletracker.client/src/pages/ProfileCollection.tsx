@@ -55,7 +55,11 @@ const ProfileCollection = () => {
     const collectionIds = new Set(userPuzzles.map(p => p.puzzleId));
     const completedIds = new Set(userPuzzles.filter(p => p.isCompleted).map(p => p.puzzleId));
     const ownedIds = new Set(userPuzzles.filter(p => p.isOwned).map(p => p.puzzleId));
+    const userPuzzleIds = new Set(userPuzzles.filter(p => p.createdByUserId).map(p => p.puzzleId));
     const [removeModalPuzzle, setRemoveModalPuzzle] = useState<UserPuzzle | null>(null);
+
+    console.log("User Puzzles in Collection:", userPuzzles);
+    console.log("User Puzzle IDs:", userPuzzleIds);
 
     useEffect(() => {
         getAllUserPuzzles()
@@ -76,7 +80,7 @@ const ProfileCollection = () => {
             <div className="text-sm text-indigo-300">
                 Page {currentPage} of {totalPages} | Showing {userPuzzles.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount} puzzles
             </div>
-            <PuzzleGrid puzzles={userPuzzles} loading={loading} error={error} collectionIds={collectionIds} completedIds={completedIds} ownedIds={ownedIds} onMarkCompleted={handleMarkCompleted} onMarkIncomplete={handleMarkIncomplete} onToggleOwned={handleToggleOwned} onRemoveFromCollection={handleRemoveFromCollection} actionLoading={false} userLoggedIn={true} isCollection={true} />
+            <PuzzleGrid puzzles={userPuzzles} loading={loading} error={error} collectionIds={collectionIds} completedIds={completedIds} ownedIds={ownedIds} onMarkCompleted={handleMarkCompleted} onMarkIncomplete={handleMarkIncomplete} onToggleOwned={handleToggleOwned} onRemoveFromCollection={handleRemoveFromCollection} actionLoading={false} userLoggedIn={true} isCollection={true} userPuzzleIds={userPuzzleIds} />
         </div>
     );
 }

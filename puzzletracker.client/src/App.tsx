@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 // Pages
 import AddCustomPuzzle from './pages/AddCustomPuzzle';
+import EditCustomPuzzle from './pages/EditCustomPuzzle';
 import GlobalLibrary from './pages/GlobalLibraryt';
 import Home from './pages/Home';
 import Layout from './components/Layout';
@@ -9,11 +10,12 @@ import NotFound from './pages/NotFound'
 import Profile from './pages/Profile';
 import ProfileCollection from './pages/ProfileCollection';
 import PuzzleDetails from './pages/PuzzleDetails';
+import Register from './pages/Register';
+import UpdateProfile from './pages/UpdateProfile';
 
 // Context
 import { UserProvider } from './context/UserContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import Register from './pages/Register';
 
 const App = () => {
     return (
@@ -32,6 +34,8 @@ const App = () => {
                             <Route path="collection" element={<ProfileCollection />} />
                             <Route path="collection/:id" element={<PuzzleDetails />} />
                             <Route path="add-puzzle" element={<AddCustomPuzzle />} />
+                            <Route path="edit-puzzle/:id" element={<EditCustomPuzzle />} />
+                            <Route path="edit" element={<UpdateProfile />} />
                         </Route>
 
                         {/* Puzzle routes */}

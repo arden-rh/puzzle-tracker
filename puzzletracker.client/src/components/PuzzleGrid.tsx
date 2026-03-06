@@ -7,6 +7,7 @@ interface PuzzleGridProps {
     error: string | null;
     collectionIds: Set<number>;
     completedIds: Set<number>;
+    userPuzzleIds: Set<number>;
     ownedIds: Set<number>;
     userLoggedIn: boolean;
     isCollection?: boolean;
@@ -25,6 +26,7 @@ const PuzzleGrid: React.FC<PuzzleGridProps> = ({
     collectionIds,
     completedIds,
     ownedIds,
+    userPuzzleIds,
     userLoggedIn,
     isCollection = false,
     onMarkCompleted,
@@ -34,20 +36,22 @@ const PuzzleGrid: React.FC<PuzzleGridProps> = ({
     onRemoveFromCollection,
     actionLoading
 }) => {
-    if (loading) return <div>Loading puzzles...</div>;
-    if (error) return <div>Error loading puzzles: {error}</div>;
+    if (loading) return <div className="w-full flex items-center justify-center text-center">
+        <span>Loading...</span>
+    </div>;
+    if (error) return <div className="w-full flex items-center justify-center text-center"><span>Error loading puzzles: {error}</span></div>;
 
     if (puzzles.length === 0) {
         const emptyMessage = isCollection
             ? "You don't have any puzzles in your collection yet. Start adding some!"
             : "No puzzles found matching the criteria.";
-        return <div>{emptyMessage}</div>;
+        return <div className="w-full flex items-center justify-center text-center">{emptyMessage}</div>;
     }
 
     return (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {puzzles.map((puzzle) => (
-                <PuzzleCard puzzle={puzzle} key={puzzle.puzzleId} isInCollection={collectionIds.has(puzzle.puzzleId)} isCompleted={completedIds.has(puzzle.puzzleId)} isOwned={ownedIds.has(puzzle.puzzleId)} onMarkCompleted={onMarkCompleted} onMarkIncomplete={onMarkIncomplete} onToggleOwned={onToggleOwned} onAddToCollection={onAddToCollection} onRemoveFromCollection={onRemoveFromCollection} actionLoading={actionLoading} userLoggedIn={userLoggedIn} />
+                <PuzzleCard puzzle={puzzle} key={puzzle.puzzleId} isInCollection={collectionIds.has(puzzle.puzzleId)} isCompleted={completedIds.has(puzzle.puzzleId)} isOwned={ownedIds.has(puzzle.puzzleId)} isCustomPuzzle={userPuzzleIds.has(puzzle.puzzleId)} onMarkCompleted={onMarkCompleted} onMarkIncomplete={onMarkIncomplete} onToggleOwned={onToggleOwned} onAddToCollection={onAddToCollection} onRemoveFromCollection={onRemoveFromCollection} actionLoading={actionLoading} userLoggedIn={userLoggedIn} />
             ))}
         </div>
     );
