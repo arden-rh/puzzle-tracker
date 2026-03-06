@@ -78,7 +78,7 @@ const useUserPuzzles = () => {
 
         try {
             await Client.UserPuzzles.addToCollection(puzzleId);
-            if (options?.markOwned) await Client.UserPuzzles.toggleOwned(puzzleId);
+            if (options?.markOwned === false) await Client.UserPuzzles.toggleOwned(puzzleId);
             if (options?.markCompleted) await Client.UserPuzzles.markAsCompleted(puzzleId);
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || err.message || `Error adding puzzle with ID ${puzzleId} to collection`;

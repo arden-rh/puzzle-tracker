@@ -56,9 +56,7 @@ export const UserProvider: React.FC<UserContextProps> = ({ children }) => {
         // Get the user information from the server/cookie on mount
         const fetchUser = async () => {
             try {
-                console.log("Fetching user profile...");
                 const profile = await Client.Account.currentUserProfile();
-                console.log("Profile fetched successfully:", profile);
                 setUser(profile);
             } catch (error: any) {
                 console.error("Error fetching user profile:", error);
@@ -66,7 +64,6 @@ export const UserProvider: React.FC<UserContextProps> = ({ children }) => {
                 console.error("Error status:", error.response?.status);
                 setUser(null);
             } finally {
-                console.log("Setting loading to false");
                 setLoading(false);
             }
         };

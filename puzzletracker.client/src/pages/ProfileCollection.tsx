@@ -71,12 +71,12 @@ const ProfileCollection = () => {
                     loading={loading}
                 />
             )}
-            <h2 className="text-xl font-bold">Profile Collection Page</h2>
+            <h2 className="text-xl font-bold">Personal Collection</h2>
             <SearchBox onSearch={handleApplySearchQuery} initialQuery={currentQuery} onReset={handleResetSearch} />
             <div className="text-sm text-indigo-300">
                 Page {currentPage} of {totalPages} | Showing {userPuzzles.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} - {Math.min(currentPage * pageSize, totalCount)} of {totalCount} puzzles
             </div>
-            <PuzzleGrid puzzles={userPuzzles} loading={loading} error={error} collectionIds={collectionIds} completedIds={completedIds} ownedIds={ownedIds} onMarkCompleted={handleMarkCompleted} onMarkIncomplete={handleMarkIncomplete} onToggleOwned={handleToggleOwned} onRemoveFromCollection={handleRemoveFromCollection} actionLoading={false} userLoggedIn={true} />
+            <PuzzleGrid puzzles={userPuzzles} loading={loading} error={error} collectionIds={collectionIds} completedIds={completedIds} ownedIds={ownedIds} onMarkCompleted={handleMarkCompleted} onMarkIncomplete={handleMarkIncomplete} onToggleOwned={handleToggleOwned} onRemoveFromCollection={handleRemoveFromCollection} actionLoading={false} userLoggedIn={true} isCollection={true} />
         </div>
     );
 }

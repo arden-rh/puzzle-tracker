@@ -41,7 +41,6 @@ const usePuzzles = () => {
             setCurrentPage(result.page);
             setTotalPages(result.totalPages);
             setPageSize(result.pageSize);
-            console.log("Fetched puzzles in hook:", result.items);
             return result.items;
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || err.message || "Error fetching puzzles";

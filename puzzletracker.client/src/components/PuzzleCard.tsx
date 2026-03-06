@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import type { Puzzle, UserPuzzle } from "../types/dto/puzzle.types";
 import Button from "./Button";
 
@@ -28,10 +29,13 @@ const PuzzleCard: React.FC<PuzzleCardProps> = ({
     userLoggedIn,
     actionLoading,
 }) => {
+
+    const navigate = useNavigate();
+
     const collectionAction = isInCollection ? onRemoveFromCollection : onAddToCollection;
 
     return (
-        <div className="relative w-full p-3 shadow rounded bg-indigo-900/90 flex flex-col gap-2 justify-between tracking-wide">
+        <div className={`relative w-full p-3 shadow rounded ${isInCollection ? 'bg-indigo-900/40' : 'bg-indigo-900/90'} flex flex-col gap-2 justify-between tracking-wide`}>
             <p className="text-sm bg-indigo-700/40 rounded ring ring-indigo-500 p-1 pr-2 text-white font-medium absolute top-2 right-2"><span className="grayscale">🧩</span>{puzzle.numberOfPieces}</p>
             <div className="flex flex-col gap-0.5">
                 <h3 className="text-indigo-50 font-medium max-w-[65%]">{puzzle.nameEnglish}</h3>
@@ -113,6 +117,14 @@ const PuzzleCard: React.FC<PuzzleCardProps> = ({
                     )}
                 </div>
             </div>}
+            <Button
+                className="mt-2 px-4 py-2 disabled:opacity-50"
+                theme="primary"
+                disabled={actionLoading}
+                onClick={() => navigate(`/puzzles/${puzzle.puzzleId}`)}
+            >
+                View Details
+            </Button>
         </div>
     );
 };

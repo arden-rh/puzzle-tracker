@@ -7,12 +7,12 @@ import { useParams } from "react-router";
 const PuzzleDetails = () => {
     const { id } = useParams<{ id: string }>();
     const puzzleId = id || "";
-    
+
     const { getPuzzleById } = usePuzzles();
-    
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    
+
     const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
 
     const fetchPuzzleDetails = async () => {
@@ -29,7 +29,7 @@ const PuzzleDetails = () => {
             setLoading(false);
         }
     };
-    
+
 
     useEffect(() => {
         console.log("Fetching details for puzzle ID:", puzzleId);
@@ -38,20 +38,24 @@ const PuzzleDetails = () => {
 
     return (
 
-        <div className="puzzle-details">
-            <h2>Puzzle Details</h2>
+        <div className="puzzle-details flex flex-col gap-3 w-full max-w-3xl m-auto md:items-center">
+            <h2 className="text-xl font-bold">Puzzle Details</h2>
             <div>
                 {loading && <p>Loading...</p>}
                 {error && <p className="text-red-500">{error}</p>}
+
                 {puzzle && (
-                    <div>
-                        <h3>{puzzle.nameEnglish}</h3>
-                        <p>Brand: {puzzle.brandName}</p>
-                        <p>Pieces: {puzzle.numberOfPieces}</p>
-                        <p>Series: {puzzle.seriesName || "N/A"}</p>
-                        <p>Illustrator: {puzzle.illustratorName || "N/A"}</p>
-                        <p>Release Date: {puzzle.releaseDate || "N/A"}</p>
-                        <p>Product Number: {puzzle.productNumber || "N/A"}</p>
+                    <div className="flex flex-col md:flex-row gap-4">
+                        {puzzle.boxImgSrc && <img src={puzzle.boxImgSrc} alt={puzzle.nameEnglish} className="rounded-md w-full max-w-[400px]" />}
+                        <div className="bg-indigo-900/70 p-4 rounded-lg">
+                            <h3>{puzzle.nameEnglish}</h3>
+                            <p>Brand: {puzzle.brandName}</p>
+                            <p>Pieces: {puzzle.numberOfPieces}</p>
+                            <p>Series: {puzzle.seriesName || "N/A"}</p>
+                            <p>Illustrator: {puzzle.illustratorName || "N/A"}</p>
+                            <p>Release Date: {puzzle.releaseDate || "N/A"}</p>
+                            <p>Product Number: {puzzle.productNumber || "N/A"}</p>
+                        </div>
                     </div>
                 )}
             </div>

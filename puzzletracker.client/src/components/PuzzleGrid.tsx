@@ -9,6 +9,7 @@ interface PuzzleGridProps {
     completedIds: Set<number>;
     ownedIds: Set<number>;
     userLoggedIn: boolean;
+    isCollection?: boolean;
     onMarkCompleted: (puzzleId: number) => void;
     onMarkIncomplete: (puzzleId: number) => void;
     onToggleOwned: (puzzleId: number) => void;
@@ -25,6 +26,7 @@ const PuzzleGrid: React.FC<PuzzleGridProps> = ({
     completedIds,
     ownedIds,
     userLoggedIn,
+    isCollection = false,
     onMarkCompleted,
     onMarkIncomplete,
     onToggleOwned,
@@ -35,10 +37,15 @@ const PuzzleGrid: React.FC<PuzzleGridProps> = ({
     if (loading) return <div>Loading puzzles...</div>;
     if (error) return <div>Error loading puzzles: {error}</div>;
 
+    if (puzzles.length === 0) {
+        const emptyMessage = isCollection
+            ? "You don't have any puzzles in your collection yet. Start adding some!"
+            : "No puzzles found matching the criteria.";
+        return <div>{emptyMessage}</div>;
+    }
 
     return (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {puzzles.length === 0 && <div>No puzzles found matching the criteria.</div>}
             {puzzles.map((puzzle) => (
                 <PuzzleCard puzzle={puzzle} key={puzzle.puzzleId} isInCollection={collectionIds.has(puzzle.puzzleId)} isCompleted={completedIds.has(puzzle.puzzleId)} isOwned={ownedIds.has(puzzle.puzzleId)} onMarkCompleted={onMarkCompleted} onMarkIncomplete={onMarkIncomplete} onToggleOwned={onToggleOwned} onAddToCollection={onAddToCollection} onRemoveFromCollection={onRemoveFromCollection} actionLoading={actionLoading} userLoggedIn={userLoggedIn} />
             ))}
