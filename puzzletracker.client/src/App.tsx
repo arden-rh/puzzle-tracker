@@ -13,6 +13,7 @@ import PuzzleDetails from './pages/PuzzleDetails';
 // Context
 import { UserProvider } from './context/UserContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Register from './pages/Register';
 
 const App = () => {
     return (
@@ -23,6 +24,7 @@ const App = () => {
                         {/* Public routes */}
                         <Route path="/" element={<Home />} />
                         <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Register />} />
 
                         {/* Protected routes */}
                         <Route path="/profile" element={<ProtectedRoute />}>

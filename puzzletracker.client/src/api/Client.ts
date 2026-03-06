@@ -40,7 +40,8 @@ const requests = {
 const Account = {
     currentUserProfile: () => requests.get<UserProfile>('/account/profile'),
     login: (email: string, password: string) => requests.post<void>('/account/login', { email, password }),
-    logout: () => requests.post<void>('/account/logout', {})
+    logout: () => requests.post<void>('/account/logout', {}),
+    register: (email: string, password: string, confirmPassword: string, displayName?: string) => requests.post<void>('/account/register', { email, password, confirmPassword, displayName })
 };
 
 const Puzzles = {

@@ -106,5 +106,51 @@ namespace PuzzleTracker.Server.Controllers
             await _signInManager.SignOutAsync();
             return Ok(new { message = "Logout successful" });
         }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(registerDto.Email) || string.IsNullOrEmpty(registerDto.Password))
+                {
+                    return BadRequest(new { message = "Email and password are required" });
+                }
+
+                if (registerDto.Password != registerDto.ConfirmPassword)
+                {
+                    return BadRequest(new { message = "Passwords do not match" });
+                }
+
+                var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
+                if (existingUser != null)
+                {
+                    return BadRequest(new { message = "Email is already registered" });
+                }
+
+                var user = new ApplicationUser
+                {
+                    UserName = registerDto.Email,
+                    Email = registerDto.Email,
+                    DisplayName = registerDto.DisplayName
+                };
+
+                var result = await _userManager.CreateAsync(user, registerDto.Password);
+
+                if (result.Succeeded)
+                {
+                    await _signInManager.SignInAsync(user, isPersistent: true);
+                    return Ok(new { message = "Registration successful" });
+                }
+
+                return BadRequest(new { message = "Registration failed", errors = result.Errors.Select(e => e.Description) });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred during registration", error = ex.Message });
+            }
+        }
+
+
     }
 }

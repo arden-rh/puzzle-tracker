@@ -9,6 +9,7 @@ interface UserContextValues {
     login: (email: string, password: string) => Promise<void>;
     logout: () => void;
     refreshUserProfile: () => Promise<void>;
+    register: (email: string, password: string, confirmPassword: string, displayName?: string) => Promise<void>;
 }
 
 interface UserContextProps {
@@ -43,6 +44,14 @@ export const UserProvider: React.FC<UserContextProps> = ({ children }) => {
         window.location.href = "/";
     };
 
+    const register = async (email: string, password: string, confirmPassword: string, displayName?: string) => {
+        if (password !== confirmPassword) {
+            throw new Error("Passwords do not match");
+        }
+        await Client.Account.register(email, password, confirmPassword, displayName);
+        await refreshUserProfile();
+    };
+
     useEffect(() => {
         // Get the user information from the server/cookie on mount
         const fetchUser = async () => {
@@ -70,7 +79,7 @@ export const UserProvider: React.FC<UserContextProps> = ({ children }) => {
     }
 
     return (
-        <UserContext.Provider value={{ user, loading, logout, refreshUserProfile, login }}>
+        <UserContext.Provider value={{ user, loading, logout, refreshUserProfile, login, register }}>
             {children}
         </UserContext.Provider>
     );

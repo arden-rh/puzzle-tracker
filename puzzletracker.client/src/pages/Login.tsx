@@ -11,7 +11,7 @@ const Login: React.FC = () => {
     const navigate = useNavigate();
     const { login } = useUser();
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
         setMessage('');
@@ -31,12 +31,12 @@ const Login: React.FC = () => {
 
     return (
         <div className="flex flex-col items-center justify-center p-4 mt-8">
-            <h2 className='text-2xl'>Login</h2>
-            <p className='text-center'>Please log in to your account to access the Puzzle Tracker.</p>
-            <div className="bg-indigo-900 rounded shadow-lg p-6 w-full max-w-sm mt-6">
+            <h2 className='text-2xl mb-2'>Login</h2>
+            <p className='text-center'>Please log in to your account to access The Puzzle Library.</p>
+            <div className="bg-indigo-900 rounded shadow-lg p-6 w-full max-w-sm mt-6 flex flex-col gap-2">
                 <h3 className='text-xl'>Login</h3>
-                <form onSubmit={handleLogin}>
-                    <div className="mb-4">
+                <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                    <div>
                         <label className="block mb-1">Email:</label>
                         <input
                             type="email"
@@ -46,7 +46,7 @@ const Login: React.FC = () => {
                             required
                         />
                     </div>
-                    <div className="mb-4">
+                    <div>
                         <label className="block mb-1">Password:</label>
                         <input
                             type="password"
@@ -59,7 +59,7 @@ const Login: React.FC = () => {
                     <Button
                         type="submit"
                         disabled={isLoading}
-                        className='w-full p-2 mt-4'
+                        className='w-full py-2'
                     >
                         {isLoading ? 'Loading...' : 'Login'}
                     </Button>
@@ -70,6 +70,7 @@ const Login: React.FC = () => {
                     </div>
                 )}
             </div>
+            <p className="mt-4 text-sm">Don't have an account? <button onClick={() => navigate('/register')} className="text-indigo-300 hover:underline">Register here</button></p>
         </div>
     );
 }
