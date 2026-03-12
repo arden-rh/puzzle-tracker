@@ -1,16 +1,17 @@
-import { useNavigate } from "react-router-dom";
 import type { Puzzle, UserPuzzle } from "../types/dto/puzzle.types";
 import Button from "./Button";
+import ButtonLink from "./ButtonLink";
 
 interface PuzzleListElProps {
     puzzle: Puzzle | UserPuzzle;
-    isInCollection: boolean;
+    isInCollection?: boolean;
     isCompleted: boolean;
-    isOwned: boolean;
+    isOwned?: boolean;
     userLoggedIn: boolean;
+    isCollection?: boolean;
     onMarkCompleted: (puzzleId: number) => void;
     onMarkIncomplete: (puzzleId: number) => void;
-    onToggleOwned: (puzzleId: number) => void;
+    onToggleOwned?: (puzzleId: number) => void;
     onAddToCollection?: (puzzleId: number) => void;
     onRemoveFromCollection?: (puzzleId: number) => void;
     actionLoading: boolean;
@@ -28,9 +29,9 @@ const PuzzleListEl: React.FC<PuzzleListElProps> = ({
     onRemoveFromCollection,
     actionLoading,
     userLoggedIn,
+    isCollection = false,
 }) => {
 
-    const navigate = useNavigate();
     const collectionAction = isInCollection ? onRemoveFromCollection : onAddToCollection;
 
     return (
@@ -65,7 +66,7 @@ const PuzzleListEl: React.FC<PuzzleListElProps> = ({
                         {isOwned ? (
                             <Button
                                 className="text-[0.8rem] sm:text-sm min-h-12"
-                                onClick={() => onToggleOwned(puzzle.puzzleId)}
+                                onClick={() => onToggleOwned && onToggleOwned(puzzle.puzzleId)}
                                 theme="primary"
                                 disabled={actionLoading}
                             >
@@ -74,7 +75,7 @@ const PuzzleListEl: React.FC<PuzzleListElProps> = ({
                         ) : (
                             <Button
                                 className="text-[0.8rem] sm:text-sm min-h-12"
-                                onClick={() => onToggleOwned(puzzle.puzzleId)}
+                                onClick={() => onToggleOwned && onToggleOwned(puzzle.puzzleId)}
                                 theme="secondary"
                                 disabled={actionLoading}
                             >
@@ -86,7 +87,7 @@ const PuzzleListEl: React.FC<PuzzleListElProps> = ({
                                 {isInCollection ? (
                                     <Button
                                     className="text-[0.8rem] sm:text-sm min-h-12"
-                                    onClick={() => collectionAction(puzzle.puzzleId)}
+                                    onClick={() => collectionAction && collectionAction(puzzle.puzzleId)}
                                     theme="primary"
                                     disabled={actionLoading}
                                     >
@@ -95,7 +96,7 @@ const PuzzleListEl: React.FC<PuzzleListElProps> = ({
                                 ) : (
                                     <Button
                                     className="text-[0.8rem] sm:text-sm min-h-12"
-                                    onClick={() => collectionAction(puzzle.puzzleId)}
+                                    onClick={() => collectionAction && collectionAction(puzzle.puzzleId)}
                                     theme="secondary"
                                     disabled={actionLoading}
                                     >
@@ -105,14 +106,13 @@ const PuzzleListEl: React.FC<PuzzleListElProps> = ({
                             </>
                         )}
                     </>}
-                <Button
-                    className="text-[0.8rem] sm:text-sm min-h-12 disabled:opacity-50"
+                <ButtonLink
+                    className="text-[0.8rem] sm:text-sm min-h-12"
                     theme="primary"
-                    disabled={actionLoading}
-                    onClick={() => navigate(`/puzzles/${puzzle.puzzleId}`)}
+                    route={`/puzzles/${puzzle.puzzleId}`}
                 >
                     View Details
-                </Button>
+                </ButtonLink>
             </div>
         </li>
     );

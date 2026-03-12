@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-//
+import { Checkbox, Field, Label, Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
+
+// Types
 import type { UserCustomPuzzle } from "../types/dto/puzzle.types";
-//
+// Hooks
+import useCustomPuzzles from "../hooks/useCustomPuzzles";
 import useUserPuzzles from "../hooks/useUserPuzzles";
 import useBrands from "../hooks/useBrands";
-//
+// Components
 import Button from "../components/Button";
+import ButtonLink from "../components/ButtonLink";
+
+const labelClass = "uppercase font-poppins tracking-wider block mb-1 text-indigo-300";
+const inputClass = "rounded ring ring-indigo-300 px-2 py-1 w-full bg-transparent text-white";
 
 const EditCustomPuzzle = () => {
 
@@ -14,7 +21,8 @@ const EditCustomPuzzle = () => {
     const puzzleId = id || "";
     const navigate = useNavigate();
 
-    const { editCustomUserPuzzle, getUserPuzzleById } = useUserPuzzles();
+    const { getUserPuzzleById } = useUserPuzzles();
+    const { editCustomPuzzle } = useCustomPuzzles();
     const { brands, getAllBrands } = useBrands();
 
     const [error, setError] = useState<string | null>(null);
@@ -75,7 +83,7 @@ const EditCustomPuzzle = () => {
 
         setLoading(true);
 
-        editCustomUserPuzzle(Number(puzzleId), updatedPuzzle)
+        editCustomPuzzle(Number(puzzleId), updatedPuzzle)
             .then(() => {
                 setSuccessMessage("Puzzle updated successfully!");
                 setLoading(false);
@@ -124,73 +132,90 @@ const EditCustomPuzzle = () => {
 
 
     return (
-
         <div className="w-full max-w-[600px] flex flex-col">
             <h2 className="mb-2">Edit Custom Puzzle</h2>
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-full">
-                <div>
-                    <label htmlFor="nameEnglish" className="uppercase font-poppins tracking-wider block mb-1 text-indigo-300">Puzzle Name</label>
-                    <input type="text" name="nameEnglish" id="nameEnglish" placeholder="My Custom Puzzle" className="rounded ring ring-indigo-300 px-2 py-1 w-full" value={nameEnglish} onChange={(e) => setNameEnglish(e.target.value)} />
-                </div>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+                <Field>
+                    <Label className={labelClass}>Puzzle Name</Label>
+                    <input type="text" placeholder="My Custom Puzzle" className={inputClass} value={nameEnglish} onChange={(e) => setNameEnglish(e.target.value)} />
+                </Field>
                 <div className="flex flex-col">
-                    <label htmlFor="brandName" className="uppercase font-poppins tracking-wider block text-indigo-300">Brand</label>
-                    {brands && brands.length > 0 &&
+                    <span className={labelClass}>Brand</span>
+                    {brands && brands.length > 0 && (
                         <div className="flex flex-col gap-1 mb-1">
-                            <span className="uppercase text-sm font-poppins tracking-wider text-indigo-400">Pick an excisting brand</span>
-                            <select name="brandName" id="brandName" className="rounded ring ring-indigo-300 px-2 py-1 w-full" value={brandName} onChange={(e) => setBrandName(e.target.value)}>
-                                <option value="">Select a brand</option>
-                                {brands.map((brand) => (
-                                    <option key={brand.id} value={brand.name}>{brand.name}</option>
-                                ))}
-                            </select>
-                            <span className="uppercase text-sm font-poppins tracking-wider text-indigo-400">or enter your own</span>
+                            <span className="uppercase text-sm font-poppins tracking-wider text-indigo-200">Pick an existing brand</span>
+                            <Listbox value={brandName} onChange={setBrandName}>
+                                <ListboxButton className="relative rounded ring ring-indigo-300 px-2 py-1 w-full text-left bg-transparent text-white">
+                                    {brandName || <span className="text-indigo-400">Select a brand</span>}
+                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-indigo-300">▾</span>
+                                </ListboxButton>
+                                <ListboxOptions anchor="bottom" className="w-[var(--button-width)] rounded border border-indigo-500 bg-indigo-950 text-white shadow-lg mt-1 z-10 overflow-auto max-h-48">
+                                    <ListboxOption value="" className="px-3 py-1.5 text-indigo-400 cursor-pointer data-[focus]:bg-indigo-800">
+                                        Select a brand
+                                    </ListboxOption>
+                                    {brands.map((brand) => (
+                                        <ListboxOption key={brand.id} value={brand.name} className="px-3 py-1.5 cursor-pointer data-[focus]:bg-indigo-800 data-[selected]:text-indigo-300 data-[selected]:font-medium">
+                                            {brand.name}
+                                        </ListboxOption>
+                                    ))}
+                                </ListboxOptions>
+                            </Listbox>
+                            <span className="uppercase text-sm font-poppins tracking-wider text-indigo-200">or enter your own</span>
                         </div>
-                    }
-                    
-                    <input type="text" name="brandName" id="brandName" placeholder="Brand Name" className="rounded ring ring-indigo-300 px-2 py-1 w-full" value={brandName} onChange={(e) => setBrandName(e.target.value)} />
+                    )}
+                    <input type="text" placeholder="Brand Name" className={inputClass} value={brandName} onChange={(e) => setBrandName(e.target.value)} />
                 </div>
-                <div>
-                    <label htmlFor="numberOfPieces" className="uppercase font-poppins tracking-wider block mb-1 text-indigo-300">Number of Pieces</label>
-                    <input type="number" name="numberOfPieces" id="numberOfPieces" placeholder="500" className="rounded ring ring-indigo-300 px-2 py-1 w-full" value={numberOfPieces} onChange={(e) => setNumberOfPieces(e.target.value)} />
-                </div>
-                <div className="flex gap-2 mt-2">
-                    <label htmlFor="isPublic" className="uppercase font-poppins tracking-wider text-indigo-300">Make Public</label>
-                    <input type="checkbox" name="isPublic" id="isPublic" className="mb-0.5" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-                </div>
-                <Button type="button" theme="secondary" onClick={() => setShowMoreFields(!showMoreFields)} className="w-full max-w-[200px] mx-auto lg:py-2 lg:px-4">Show more information</Button>
+                <Field>
+                    <Label className={labelClass}>Number of Pieces</Label>
+                    <input type="number" placeholder="500" className={inputClass} value={numberOfPieces} onChange={(e) => setNumberOfPieces(e.target.value)} />
+                </Field>
+                <Field className="flex gap-2 items-center mt-2">
+                    <Checkbox
+                        checked={isPublic}
+                        onChange={setIsPublic}
+                        className="group size-4 rounded border border-indigo-300 flex items-center justify-center data-[checked]:bg-indigo-600 data-[checked]:border-indigo-600 cursor-pointer"
+                    >
+                        <span className="hidden group-data-[checked]:block text-white text-xs leading-none">✓</span>
+                    </Checkbox>
+                    <Label className="uppercase font-poppins tracking-wider text-indigo-300 cursor-pointer">Make Public</Label>
+                </Field>
 
-                {showMoreFields &&
-                    <div className="flex flex-col gap-2 mb-4">
-                        <div>
-                            <label htmlFor="productNumber" className="uppercase font-poppins tracking-wider block mb-1 text-indigo-300">Product Number</label>
-                            <input type="text" name="productNumber" id="productNumber" placeholder="12345" className="rounded ring ring-indigo-300 px-2 py-1 w-full" value={productNumber} onChange={(e) => setProductNumber(e.target.value)} />
-                        </div>
-                        <div>
-                            <label htmlFor="seriesName" className="uppercase font-poppins tracking-wider block mb-1 text-indigo-300">Series Name</label>
-                            <input type="text" name="seriesName" id="seriesName" placeholder="Beautiful Scenery Series" className="rounded ring ring-indigo-300 px-2 py-1 w-full" value={seriesName} onChange={(e) => setSeriesName(e.target.value)} />
-                        </div>
-                        <div>
-                            <label htmlFor="illustratorName" className="uppercase font-poppins tracking-wider block mb-1 text-indigo-300">Illustrator Name</label>
-                            <input type="text" name="illustratorName" id="illustratorName" placeholder="John Doe" className="rounded ring ring-indigo-300 px-2 py-1 w-full" value={illustratorName} onChange={(e) => setIllustratorName(e.target.value)} />
-                        </div>
-                        <div>
-                            <label htmlFor="nameLocal" className="uppercase font-poppins tracking-wider block mb-1 text-indigo-300">Local Name</label>
-                            <input type="text" name="nameLocal" id="nameLocal" placeholder="Mitt Pussel" className="rounded ring ring-indigo-300 px-2 py-1 w-full" value={nameLocal} onChange={(e) => setNameLocal(e.target.value)} />
-                        </div>
-                        <div>
-                            <label htmlFor="localLanguage" className="uppercase font-poppins tracking-wider block mb-1 text-indigo-300">Local Language</label>
-                            <input type="text" name="localLanguage" id="localLanguage" placeholder="Swedish" className="rounded ring ring-indigo-300 px-2 py-1 w-full" value={localLanguage} onChange={(e) => setLocalLanguage(e.target.value)} />
-                        </div>
-                        <div>
-                            <label htmlFor="boxImgSrc" className="uppercase font-poppins tracking-wider block mb-1 text-indigo-300">Box Image Url</label>
-                            <input type="text" name="boxImgSrc" id="boxImgSrc" placeholder="https://example.com/puzzle.jpg" className="rounded ring ring-indigo-300 px-2 py-1 w-full" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-                        </div>
+                <Button type="button" theme="secondary" onClick={() => setShowMoreFields(!showMoreFields)} className="w-full max-w-[200px] mx-auto py-2">Show more information</Button>
+
+                {showMoreFields && (
+                    <div className="flex flex-col gap-2">
+                        <Field>
+                            <Label className={labelClass}>Product Number</Label>
+                            <input type="text" placeholder="12345" className={inputClass} value={productNumber} onChange={(e) => setProductNumber(e.target.value)} />
+                        </Field>
+                        <Field>
+                            <Label className={labelClass}>Series Name</Label>
+                            <input type="text" placeholder="Beautiful Scenery Series" className={inputClass} value={seriesName} onChange={(e) => setSeriesName(e.target.value)} />
+                        </Field>
+                        <Field>
+                            <Label className={labelClass}>Illustrator Name</Label>
+                            <input type="text" placeholder="John Doe" className={inputClass} value={illustratorName} onChange={(e) => setIllustratorName(e.target.value)} />
+                        </Field>
+                        <Field>
+                            <Label className={labelClass}>Local Name</Label>
+                            <input type="text" placeholder="Mitt Pussel" className={inputClass} value={nameLocal} onChange={(e) => setNameLocal(e.target.value)} />
+                        </Field>
+                        <Field>
+                            <Label className={labelClass}>Local Language</Label>
+                            <input type="text" placeholder="Swedish" className={inputClass} value={localLanguage} onChange={(e) => setLocalLanguage(e.target.value)} />
+                        </Field>
+                        <Field>
+                            <Label className={labelClass}>Box Image URL</Label>
+                            <input type="text" placeholder="https://example.com/puzzle.jpg" className={inputClass} value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+                        </Field>
                     </div>
-                }
-
-                <Button type="submit" theme="primary" className="w-full max-w-[200px] mx-auto lg:py-2 lg:px-4">Edit Puzzle</Button>
+                )}
+                <div className="flex gap-2 justify-center items-center mt-4">
+                    <Button type="submit" className="max-w-32">Add Puzzle</Button>
+                    <ButtonLink route="/profile/collection" className="max-w-32">Cancel</ButtonLink>
+                </div>
             </form>
+
             {loading && <p className="w-full mt-3">Editing puzzle...</p>}
             {error && <p className="text-red-500 w-full mt-3">{error}</p>}
             {successMessage && <p className="text-green-500 w-full mt-3">{successMessage}</p>}

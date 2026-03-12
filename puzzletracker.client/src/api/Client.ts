@@ -65,11 +65,15 @@ const UserPuzzles = {
     markAsCompleted: (puzzleId: number) => requests.post(`/user-puzzles/complete/${puzzleId}`, {}),
     markAsIncomplete: (puzzleId: number) => requests.post(`/user-puzzles/incomplete/${puzzleId}`, {}),
     toggleOwned: (puzzleId: number) => requests.post(`/user-puzzles/toggle-owned/${puzzleId}`, {}),
-    update: (puzzleId: number, updates: Partial<UserPuzzle>) => requests.put(`/user-puzzles/update/${puzzleId}`, updates),
-    createCustom: (puzzle: UserCustomPuzzle) => requests.post('/user-puzzles/custom/create', puzzle),
-    editCustom: (puzzleId: number, puzzle: UserCustomPuzzle) => requests.post(`/user-puzzles/custom/edit/${puzzleId}`, puzzle),
-    deleteCustom: (puzzleId: number) => requests.delete(`/user-puzzles/custom/delete/${puzzleId}`),
+    update: (puzzleId: number, updates: Partial<UserPuzzle>) => requests.post(`/user-puzzles/update/${puzzleId}`, updates),
     remove: (puzzleId: number) => requests.delete(`/user-puzzles/remove/${puzzleId}`)
+};
+
+const CustomPuzzles = {
+    getAll: () => requests.get<UserPuzzle[]>('/custom-puzzles'),
+    createCustom: (puzzle: UserCustomPuzzle) => requests.post('/custom-puzzles', puzzle),
+    editCustom: (puzzleId: number, puzzle: UserCustomPuzzle) => requests.put(`/custom-puzzles/edit/${puzzleId}`, puzzle),
+    deleteCustom: (puzzleId: number) => requests.delete(`/custom-puzzles/delete/${puzzleId}`),
 };
 
 const Illustrators = {
@@ -89,6 +93,7 @@ const Series = {
 
 const Client = {
     Account,
+    CustomPuzzles,
     Puzzles,
     UserPuzzles,
     Illustrators,

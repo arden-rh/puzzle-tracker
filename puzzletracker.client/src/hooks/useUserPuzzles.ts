@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Client from "../api/Client";
-import type { UserPuzzle, UserCustomPuzzle } from "../types/dto/puzzle.types";
+import type { UserPuzzle } from "../types/dto/puzzle.types";
 
 
 const useUserPuzzles = () => {
@@ -176,59 +176,6 @@ const useUserPuzzles = () => {
         }
     };
 
-    /* Custom Puzzles */
-
-    // Creates a new custom puzzle
-    const createCustomUserPuzzle = async (puzzle: UserCustomPuzzle) => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            await Client.UserPuzzles.createCustom(puzzle);
-            await getAllUserPuzzles(); // Refresh the list after creating a new custom puzzle
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error creating custom puzzle`;
-            setError(errorMsg);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Updates an existing custom puzzle
-    const editCustomUserPuzzle = async (puzzleId: number, puzzle: UserCustomPuzzle) => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            await Client.UserPuzzles.editCustom(puzzleId, puzzle);
-            await getAllUserPuzzles(); // Refresh the list after updating a custom puzzle
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error updating custom puzzle`;
-            setError(errorMsg);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Deletes a custom puzzle by its ID
-    const deleteCustomUserPuzzle = async (puzzleId: number) => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            await Client.UserPuzzles.deleteCustom(puzzleId);
-            await getAllUserPuzzles();
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error deleting custom puzzle`;
-            setError(errorMsg);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    }
-
     return {
         // State
         userPuzzles,
@@ -247,10 +194,7 @@ const useUserPuzzles = () => {
         markPuzzleAsCompleted,
         markPuzzleAsIncomplete,
         toggleOwnedStatus,
-        updateUserPuzzle,
-        createCustomUserPuzzle,
-        editCustomUserPuzzle,
-        deleteCustomUserPuzzle
+        updateUserPuzzle
     };
 };
 
