@@ -1,6 +1,7 @@
 import { useState } from "react";
-import type { Puzzle } from "../types/dto/puzzle.types";
-import Button from "./Button";
+
+import Button from "../Button";
+import type { Puzzle } from "../../types/dto/puzzle.types";
 
 interface AddToCollectionModalProps {
     puzzle: Puzzle;

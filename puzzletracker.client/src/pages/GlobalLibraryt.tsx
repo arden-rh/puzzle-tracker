@@ -13,11 +13,11 @@ import useUserPuzzles from "../hooks/useUserPuzzles";
 import useUser from "../hooks/useUser";
 
 // Components
-import AddToCollectionModal from "../components/AddToCollectionModal";
+import AddToCollectionModal from "../components/modals/AddToCollectionModal";
+import RemoveFromCollectionModal from "../components/modals/RemoveFromCollectionModal";
 import Pagination from "../components/Pagination";
 import PuzzleGrid from "../components/PuzzleGrid";
 import PuzzleList from "../components/PuzzleList";
-import RemoveFromCollectionModal from "../components/RemoveFromCollectionModal";
 import SearchBox from "../components/SearchBox";
 import SortFilterBox from "../components/SortFilterBox";
 import Button from "../components/Button";
@@ -109,7 +109,7 @@ const GlobalLibrary = () => {
     const userLoggedIn = !!user;
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 w-full">
             {addModalPuzzle && (
                 <AddToCollectionModal
                     puzzle={addModalPuzzle}

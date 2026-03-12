@@ -8,7 +8,7 @@ import useUserPuzzles from "../hooks/useUserPuzzles";
 // Components
 import SearchBox from "../components/SearchBox";
 import PuzzleGrid from "../components/PuzzleGrid";
-import RemoveFromCollectionModal from "../components/RemoveFromCollectionModal";
+import RemoveFromCollectionModal from "../components/modals/RemoveFromCollectionModal";
 
 const ProfileCollection = () => {
 

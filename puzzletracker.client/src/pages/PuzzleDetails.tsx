@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router";
+import { useParams, useLocation } from "react-router";
 // Types
 import type { Puzzle, UserPuzzle } from "../types/dto/puzzle.types";
 // Hooks
 import usePuzzles from "../hooks/usePuzzles";
 import useUserPuzzles from "../hooks/useUserPuzzles";
 // Components
-import Button from "../components/Button";
+import ButtonLink from "../components/ButtonLink";
 
 
 const PuzzleDetails = () => {
@@ -15,7 +15,6 @@ const PuzzleDetails = () => {
     const location = useLocation();
 
     const isInCollection = location.pathname.startsWith("/profile/collection");
-    const navigate = useNavigate();
 
     const { getPuzzleById } = usePuzzles();
     const { getUserPuzzleById } = useUserPuzzles();
@@ -92,19 +91,19 @@ const PuzzleDetails = () => {
                                     </div>}
                             </div>
                             <div className="flex gap-2">
-                                <Button
-                                    onClick={isInCollection ? () => navigate("/profile/collection") : () => navigate("/puzzles")}
+                                <ButtonLink
+                                    route={isInCollection ? "/profile/collection" : "/puzzles"}
                                     theme="primary"
                                 >
                                     Back to {isInCollection ? "My Collection" : "Puzzles"}
-                                </Button>
+                                </ButtonLink>
                                 {puzzle.puzzleType === "UserCustom" &&
-                                    <Button
-                                        onClick={() => navigate(`/profile/collection/${puzzle.puzzleId}/edit`)}
+                                    <ButtonLink
+                                        route={`/profile/custom-puzzles/${puzzle.puzzleId}/edit`}
                                         theme="primary"
                                     >
                                         Edit Puzzle
-                                    </Button>
+                                    </ButtonLink>
                                 }
                             </div>
                         </div>

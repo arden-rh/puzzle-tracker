@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 interface ButtonLinkProps {
     children: React.ReactNode;
     className?: string;
@@ -9,20 +11,20 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({ children, className = "", theme
     let themeClass = "";
     switch (theme) {
         case "primary":
-            themeClass = "bg-indigo-600 text-white";
+            themeClass = "bg-indigo-600 text-white hover:bg-indigo-700";
             break;
         case "secondary":
-            themeClass = "bg-indigo-700/60 text-white";
+            themeClass = "bg-indigo-700/60 text-white hover:bg-indigo-900";
             break;
     }
 
     return (
-        <a
-            className={`px-2 py-1 rounded text-sm shadow ${themeClass} ${className}`}
-            href={route}
+        <Link
+            to={route}
+            className={`flex items-center justify-center px-2 py-1 rounded text-sm text-center shadow cursor-pointer font-poppins ${themeClass} ${className}`}
         >
             {children}
-        </a>
+        </Link>
     );
 };
 

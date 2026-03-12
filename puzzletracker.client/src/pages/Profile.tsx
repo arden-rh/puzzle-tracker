@@ -1,7 +1,10 @@
 import { useEffect } from 'react';
-import Button from '../components/Button';
-import useUser from '../hooks/useUser';
 import { useNavigate } from 'react-router-dom';
+// Hooks
+import useUser from '../hooks/useUser';
+// Components
+import Button from '../components/Button';
+import ButtonLink from '../components/ButtonLink';
 
 const Profile = () => {
     const { user, logout, refreshUserProfile } = useUser();
@@ -19,8 +22,6 @@ const Profile = () => {
             console.error('Logout failed:', error);
         }
     };
-
-    console.log("user", user);
 
     if (!user) {
         return <div className='w-full flex items-center justify-center text-center'><span>Loading...</span></div>;
@@ -52,23 +53,22 @@ const Profile = () => {
                 </div>
             </div>
             <div className='flex flex-wrap justify-start gap-2'>
-                <Button
-                    onClick={() => navigate('/profile/collection')}
+                <ButtonLink
+                    route={'/profile/collection'}
                 >
                     My Collection
-                </Button>
-                <Button
-                    onClick={() => navigate('/profile/add-puzzle')}
+                </ButtonLink>
+                <ButtonLink
+                    route={'/profile/custom-puzzles/add'}
                 >
-                    Add Puzzle
-                </Button>
+                    Create new custom puzzle
+                </ButtonLink>
 
-                <Button
-                    onClick={() => navigate('/profile/edit')}
-                    theme="secondary"
+                <ButtonLink
+                    route={'/profile/edit'}
                 >
                     Edit Profile
-                </Button>
+                </ButtonLink>
                 <Button
                     onClick={handleLogout}
                     theme="secondary"

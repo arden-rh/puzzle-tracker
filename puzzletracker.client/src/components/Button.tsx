@@ -11,10 +11,10 @@ const Button: React.FC<ButtonProps> = ({ onClick, disabled = false, children, cl
     let themeClass = "";
     switch (theme) {
         case "primary":
-            themeClass = "bg-indigo-600 text-white";
+            themeClass = "bg-indigo-600 text-white hover:bg-indigo-700 hover:ring hover:ring-indigo-300/50 hover:shadow-md";
             break;
         case "secondary":
-            themeClass = "bg-indigo-700/60 text-white";
+            themeClass = "bg-indigo-700/60 text-white hover:bg-indigo-900 hover:ring hover:ring-indigo-300/50 hover:shadow-md";
             break;
     }
 
@@ -23,7 +23,7 @@ const Button: React.FC<ButtonProps> = ({ onClick, disabled = false, children, cl
             type={type}
             onClick={onClick}
             disabled={disabled}
-            className={`px-2 py-1 rounded text-sm shadow cursor-pointer font-poppins ${themeClass} ${className}`}
+            className={`flex items-center justify-center px-2 py-1 rounded text-sm text-center shadow cursor-pointer font-poppins ${themeClass} ${className}`}
         >
             {children}
         </button>

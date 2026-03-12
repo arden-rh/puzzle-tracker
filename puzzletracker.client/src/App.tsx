@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 // Pages
 import AddCustomPuzzle from './pages/AddCustomPuzzle';
 import EditCustomPuzzle from './pages/EditCustomPuzzle';
+import CustomPuzzles from './pages/CustomPuzzles';
 import GlobalLibrary from './pages/GlobalLibraryt';
 import Home from './pages/Home';
 import Layout from './components/Layout';
@@ -35,8 +36,9 @@ const App = () => {
                             <Route path="collection" element={<ProfileCollection />} />
                             <Route path="collection/:id" element={<PuzzleDetails />} />
                             <Route path="collection/:id/update" element={<UpdateCollectionPuzzle />} />
-                            <Route path="add-puzzle" element={<AddCustomPuzzle />} />
-                            <Route path="collection/:id/edit" element={<EditCustomPuzzle />} />
+                            <Route path='custom-puzzles' element={<CustomPuzzles />} />
+                            <Route path="custom-puzzles/add" element={<AddCustomPuzzle />} />
+                            <Route path="custom-puzzles/:id/edit" element={<EditCustomPuzzle />} />
                             <Route path="edit" element={<UpdateProfile />} />
                         </Route>
 

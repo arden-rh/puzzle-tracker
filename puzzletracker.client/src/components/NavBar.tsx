@@ -12,7 +12,10 @@ const NavBar = () => {
                 <div className="flex items-center text-sm uppercase tracking-wider font-medium font-poppins">
                     <a href="/puzzles" className="mr-3">Puzzles</a>
                     {user ? (
-                        <a href="/profile">Profile</a>
+                        <>
+                            <a href='/profile/collection' className="hidden lg:inline-block mr-3">My Collection</a>
+                            <a href="/profile">Profile</a>
+                        </>
                     ) : (
                         <a href="/login">Login</a>
                     )}
