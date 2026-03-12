@@ -25,6 +25,7 @@ namespace PuzzleTracker.Server.Controllers
             _context = context;
         }
 
+        /* GET USER COLLECTION */
         [HttpGet("my-collection")]
         public async Task<ActionResult<PaginatedResult<UserPuzzleDto>>> GetUserCollection(
             [FromQuery] string? searchQuery = null,
@@ -114,12 +115,13 @@ namespace PuzzleTracker.Server.Controllers
             return Ok(result);
         }
 
-        [HttpGet("my-collection/{userPuzzleId}")]
-        public async Task<ActionResult<UserPuzzleDto>> GetCollectionEntry(int userPuzzleId)
+        /* GET SPECIFIC PUZZLE FROM USER COLLECTION */
+        [HttpGet("my-collection/{puzzleId}")]
+        public async Task<ActionResult<UserPuzzleDto>> GetCollectionEntry(int puzzleId)
         {
             var userId = _userManager.GetUserId(User);
             var userPuzzle = await _context.UserPuzzles
-                .Where(up => up.Id == userPuzzleId && up.UserId == userId)
+                .Where(up => up.PuzzleId == puzzleId && up.UserId == userId)
                 .Select(up => new UserPuzzleDto
                 {
                     UserPuzzleId = up.Id,
@@ -154,7 +156,7 @@ namespace PuzzleTracker.Server.Controllers
             return Ok(userPuzzle);
         }
 
-        // Check if a specific puzzle is in the user's collection
+        /* CHECK IF PUZZLE IS IN USER COLLECTION */
         [HttpGet("check/{puzzleId}")]
         public async Task<ActionResult<bool>> CheckIfInCollection(int puzzleId)
         {
@@ -164,7 +166,8 @@ namespace PuzzleTracker.Server.Controllers
             return Ok(exists);
         }
 
-        // Add puzzle to collection - this is for adding existing puzzles from the main catalog, not for creating new custom puzzles
+        /* ADD PUZZLE TO USER COLLECTION */
+        // This is for adding existing puzzles from the main catalog, not for creating new custom puzzles
         [HttpPost("add/{puzzleId}")]
         public async Task<ActionResult> AddToCollection(int puzzleId)
         {
@@ -193,8 +196,123 @@ namespace PuzzleTracker.Server.Controllers
             return Ok("Puzzle added to your collection.");
         }
 
-        // Create a new custom puzzle to the user's collection
-        [HttpPost("create")]
+        /* UPDATE COLLECTION ENTRY */
+        [HttpPost("update/{puzzleId}")]
+        public async Task<ActionResult> UpdateCollectionEntry(int puzzleId, [FromBody] UserPuzzleDto updatedData)
+        {
+            var userId = _userManager.GetUserId(User);
+            var userPuzzle = await _context.UserPuzzles
+                .Include(up => up.Puzzle)
+                .FirstOrDefaultAsync(up => up.PuzzleId == puzzleId && up.UserId == userId);
+            if (userPuzzle == null)
+                return NotFound("Collection entry not found.");
+            // Update the collection entry with the provided data
+            userPuzzle.IsOwned = updatedData.IsOwned;
+            userPuzzle.IsCompleted = updatedData.IsCompleted;
+            userPuzzle.TimesCompleted = updatedData.TimesCompleted;
+            userPuzzle.LastCompletedDate = updatedData.LastCompletedDate;
+            await _context.SaveChangesAsync();
+            return Ok("Collection entry updated.");
+        }
+
+        /* MARK PUZZLE AS COMPLETED */
+        // Mark a puzzle as completed - this will increment the times completed and update the last completed date
+        [HttpPost("complete/{puzzleId}")]
+        public async Task<ActionResult> MarkAsCompleted(int puzzleId)
+        {
+            var userId = _userManager.GetUserId(User);
+            var userPuzzle = await _context.UserPuzzles
+                .FirstOrDefaultAsync(up => up.PuzzleId == puzzleId && up.UserId == userId);
+            if (userPuzzle == null)
+            {
+                userPuzzle = new UserPuzzle
+                {
+                    UserId = userId,
+                    PuzzleId = puzzleId,
+                    IsOwned = true,
+                    IsCompleted = true,
+                    TimesCompleted = 1,
+                    LastCompletedDate = DateTime.Now
+                };
+
+                _context.UserPuzzles.Add(userPuzzle);
+            }
+            // Mark the puzzle as completed
+            userPuzzle.IsCompleted = true;
+            userPuzzle.TimesCompleted += 1;
+            userPuzzle.LastCompletedDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+            return Ok("Puzzle marked as completed.");
+        }
+
+        /* MARK PUZZLE AS INCOMPLETE */
+        // this will decrement the times completed and update the last completed date
+        [HttpPost("incomplete/{puzzleId}")]
+        public async Task<ActionResult> MarkAsIncomplete(int puzzleId)
+        {
+            var userId = _userManager.GetUserId(User);
+            var userPuzzle = await _context.UserPuzzles
+                .FirstOrDefaultAsync(up => up.PuzzleId == puzzleId && up.UserId == userId);
+            if (userPuzzle == null)
+                return NotFound("Collection entry not found.");
+            // Mark the puzzle as incomplete
+            userPuzzle.IsCompleted = false;
+            userPuzzle.TimesCompleted = Math.Max(0, userPuzzle.TimesCompleted - 1);
+            userPuzzle.LastCompletedDate = userPuzzle.TimesCompleted > 0 ? DateTime.Now : (DateTime?)null;
+            await _context.SaveChangesAsync();
+            return Ok("Puzzle marked as incomplete.");
+        }
+        
+        /* TOGGLE PUZZLE OWNERSHIP */
+        // Toggle ownership status - if the puzzle is not in the collection, it will be added with IsOwned = true. If it is already in the collection, it will toggle the IsOwned status.
+        [HttpPost("toggle-owned/{puzzleId}")]
+        public async Task<ActionResult> ToggleOwned(int puzzleId)
+        {
+            var userId = _userManager.GetUserId(User);
+            var userPuzzle = await _context.UserPuzzles
+                .FirstOrDefaultAsync(up => up.PuzzleId == puzzleId && up.UserId == userId);
+            if (userPuzzle == null)
+            {
+                userPuzzle = new UserPuzzle
+                {
+                    UserId = userId,
+                    PuzzleId = puzzleId,
+                    IsOwned = true,
+                    IsCompleted = false,
+                    TimesCompleted = 0,
+                    LastCompletedDate = null
+                };
+
+                _context.UserPuzzles.Add(userPuzzle);
+            }
+            else
+            {
+                userPuzzle.IsOwned = !userPuzzle.IsOwned;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok("Puzzle ownership toggled.");
+        }
+        
+        /* REMOVE PUZZLE FROM COLLECTION */
+        // Remove a puzzle from the user's collection - this will delete the UserPuzzle entry for that puzzle
+        [HttpDelete("remove/{puzzleId}")]
+        public async Task<ActionResult> RemoveFromCollection(int puzzleId)
+        {
+            var userId = _userManager.GetUserId(User);
+            var userPuzzle = await _context.UserPuzzles
+                .FirstOrDefaultAsync(up => up.PuzzleId == puzzleId && up.UserId == userId);
+            if (userPuzzle == null)
+                return NotFound("Collection entry not found.");
+            _context.UserPuzzles.Remove(userPuzzle);
+            await _context.SaveChangesAsync();
+            return Ok("Puzzle removed from your collection.");
+        }
+
+        /* CUSTOM PUZZLE MANAGEMENT */
+
+        /* CREATE CUSTOM PUZZLE */
+        [HttpPost("custom/create")]
         public async Task<ActionResult> AddCustomPuzzle([FromBody] UserCustomPuzzleDto customPuzzleData)
         {
             var userId = _userManager.GetUserId(User);
@@ -277,6 +395,87 @@ namespace PuzzleTracker.Server.Controllers
             return Ok(new { message = "Custom puzzle added to your collection.", puzzleId = customPuzzle.Id, userPuzzleId = userPuzzle.Id });
         }
 
+        /* EDIT CUSTOM PUZZLE */
+        [HttpPost("custom/edit/{puzzleId}")]
+        public async Task<ActionResult> EditCustomPuzzle(int puzzleId, [FromBody] UserCustomPuzzleDto updatedData)
+        {
+            var userId = _userManager.GetUserId(User);
+            var customPuzzle = await _context.CustomPuzzles
+                .FirstOrDefaultAsync(cp => cp.Id == puzzleId && cp.CreatedByUserId == userId);
+            if (customPuzzle == null)
+                return NotFound("Custom puzzle not found.");
+
+            // Get or create Brand
+            var brand = await _context.Brands.FirstOrDefaultAsync(b => b.Name == updatedData.BrandName);
+            if (brand == null)
+            {
+                brand = new Brand { Name = updatedData.BrandName };
+                _context.Brands.Add(brand);
+                await _context.SaveChangesAsync();
+            }
+
+            // Get or create Series (optional)
+            int? seriesId = null;
+            if (!string.IsNullOrEmpty(updatedData.SeriesName))
+            {
+                var series = await _context.Series.FirstOrDefaultAsync(s => s.Name == updatedData.SeriesName && s.BrandId == brand.Id);
+                if (series == null)
+                {
+                    series = new PuzzleSeries { Name = updatedData.SeriesName, BrandId = brand.Id };
+                    _context.Series.Add(series);
+                    await _context.SaveChangesAsync();
+                }
+                seriesId = series.Id;
+            }
+
+            // Get or create Illustrator (optional)
+            int? illustratorId = null;
+            if (!string.IsNullOrEmpty(updatedData.IllustratorName))
+            {
+                var illustrator = await _context.Illustrators.FirstOrDefaultAsync(i => i.Name == updatedData.IllustratorName);
+                if (illustrator == null)
+                {
+                    illustrator = new Illustrator { Name = updatedData.IllustratorName };
+                    _context.Illustrators.Add(illustrator);
+                    await _context.SaveChangesAsync();
+                }
+                illustratorId = illustrator.Id;
+            }
+
+            // Update the custom puzzle with the provided data
+            customPuzzle.NameEnglish = updatedData.NameEnglish;
+            customPuzzle.NameLocal = updatedData.NameLocal;
+            customPuzzle.LocalLanguage = updatedData.LocalLanguage;
+            customPuzzle.ProductNumber = updatedData.ProductNumber;
+            customPuzzle.NumberOfPieces = updatedData.NumberOfPieces;
+            customPuzzle.SortablePieceCount = ParsePieceCount(updatedData.NumberOfPieces);
+            customPuzzle.BoxImgSrc = updatedData.BoxImgSrc;
+            customPuzzle.IsPublic = updatedData.IsPublic;
+            await _context.SaveChangesAsync();
+            return Ok("Custom puzzle edited.");
+        }
+
+        /* DELETE CUSTOM PUZZLE */
+        [HttpDelete("custom/delete/{puzzleId}")]
+        public async Task<ActionResult> DeleteCustomPuzzle(int puzzleId)
+        {
+            var userId = _userManager.GetUserId(User);
+            var customPuzzle = await _context.CustomPuzzles
+                .FirstOrDefaultAsync(cp => cp.Id == puzzleId && cp.CreatedByUserId == userId);
+            if (customPuzzle == null)
+                return NotFound("Custom puzzle not found.");
+            // Remove the custom puzzle from all user collections
+            var userPuzzles = await _context.UserPuzzles
+                .Where(up => up.PuzzleId == puzzleId)
+                .ToListAsync();
+            _context.UserPuzzles.RemoveRange(userPuzzles);
+            // Remove the custom puzzle itself
+            _context.CustomPuzzles.Remove(customPuzzle);
+            await _context.SaveChangesAsync();
+            return Ok("Custom puzzle deleted.");
+        }
+
+        /* HELPER */
         private static int ParsePieceCount(string numberOfPieces)
         {
             if (string.IsNullOrEmpty(numberOfPieces))
@@ -289,115 +488,6 @@ namespace PuzzleTracker.Server.Controllers
                 return count;
 
             return 0;
-        }
-
-        // To be implemented
-        [HttpPost("update/{userPuzzleId}")]
-        public async Task<ActionResult> UpdateCollectionEntry(int userPuzzleId, [FromBody] UserPuzzleDto updatedData)
-        {
-            var userId = _userManager.GetUserId(User);
-            var userPuzzle = await _context.UserPuzzles
-                .Include(up => up.Puzzle)
-                .FirstOrDefaultAsync(up => up.Id == userPuzzleId && up.UserId == userId);
-            if (userPuzzle == null)
-                return NotFound("Collection entry not found.");
-            // Update the collection entry with the provided data
-            userPuzzle.IsOwned = updatedData.IsOwned;
-            userPuzzle.IsCompleted = updatedData.IsCompleted;
-            userPuzzle.TimesCompleted = updatedData.TimesCompleted;
-            userPuzzle.LastCompletedDate = updatedData.LastCompletedDate;
-            await _context.SaveChangesAsync();
-            return Ok("Collection entry updated.");
-        }
-
-        // Mark a puzzle as completed - this will increment the times completed and update the last completed date
-        [HttpPost("complete/{puzzleId}")]
-        public async Task<ActionResult> MarkAsCompleted(int puzzleId)
-        {
-            var userId = _userManager.GetUserId(User);
-            var userPuzzle = await _context.UserPuzzles
-                .FirstOrDefaultAsync(up => up.PuzzleId == puzzleId && up.UserId == userId);
-            if (userPuzzle == null)
-            {
-                userPuzzle = new UserPuzzle
-                {
-                    UserId = userId,
-                    PuzzleId = puzzleId,
-                    IsOwned = true,
-                    IsCompleted = true,
-                    TimesCompleted = 1,
-                    LastCompletedDate = DateTime.Now
-                };
-
-                _context.UserPuzzles.Add(userPuzzle);
-            }
-            // Mark the puzzle as completed
-            userPuzzle.IsCompleted = true;
-            userPuzzle.TimesCompleted += 1;
-            userPuzzle.LastCompletedDate = DateTime.Now;
-            await _context.SaveChangesAsync();
-            return Ok("Puzzle marked as completed.");
-        }
-
-        // Mark a puzzle as incomplete - this will decrement the times completed and update the last completed date
-        [HttpPost("incomplete/{puzzleId}")]
-        public async Task<ActionResult> MarkAsIncomplete(int puzzleId)
-        {
-            var userId = _userManager.GetUserId(User);
-            var userPuzzle = await _context.UserPuzzles
-                .FirstOrDefaultAsync(up => up.PuzzleId == puzzleId && up.UserId == userId);
-            if (userPuzzle == null)
-                return NotFound("Collection entry not found.");
-            // Mark the puzzle as incomplete
-            userPuzzle.IsCompleted = false;
-            userPuzzle.TimesCompleted = Math.Max(0, userPuzzle.TimesCompleted - 1);
-            userPuzzle.LastCompletedDate = userPuzzle.TimesCompleted > 0 ? DateTime.Now : (DateTime?)null;
-            await _context.SaveChangesAsync();
-            return Ok("Puzzle marked as incomplete.");
-        }
-
-        // Toggle ownership status - if the puzzle is not in the collection, it will be added with IsOwned = true. If it is already in the collection, it will toggle the IsOwned status.
-        [HttpPost("toggle-owned/{puzzleId}")]
-        public async Task<ActionResult> ToggleOwned(int puzzleId)
-        {
-            var userId = _userManager.GetUserId(User);
-            var userPuzzle = await _context.UserPuzzles
-                .FirstOrDefaultAsync(up => up.PuzzleId == puzzleId && up.UserId == userId);
-            if (userPuzzle == null)
-            {
-                userPuzzle = new UserPuzzle
-                {
-                    UserId = userId,
-                    PuzzleId = puzzleId,
-                    IsOwned = true,
-                    IsCompleted = false,
-                    TimesCompleted = 0,
-                    LastCompletedDate = null
-                };
-
-                _context.UserPuzzles.Add(userPuzzle);
-            }
-            else
-            {
-                userPuzzle.IsOwned = !userPuzzle.IsOwned;
-            }
-
-            await _context.SaveChangesAsync();
-            return Ok("Puzzle ownership toggled.");
-        }
-
-        // Remove a puzzle from the user's collection - this will delete the UserPuzzle entry for that puzzle
-        [HttpDelete("remove/{puzzleId}")]
-        public async Task<ActionResult> RemoveFromCollection(int puzzleId)
-        {
-            var userId = _userManager.GetUserId(User);
-            var userPuzzle = await _context.UserPuzzles
-                .FirstOrDefaultAsync(up => up.PuzzleId == puzzleId && up.UserId == userId);
-            if (userPuzzle == null)
-                return NotFound("Collection entry not found.");
-            _context.UserPuzzles.Remove(userPuzzle);
-            await _context.SaveChangesAsync();
-            return Ok("Puzzle removed from your collection.");
         }
 
     }

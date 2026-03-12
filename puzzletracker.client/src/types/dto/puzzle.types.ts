@@ -21,7 +21,7 @@ export interface Puzzle {
     isComboPack?: boolean; // For JVH
     createdByUserId?: string; // For UserCustom
     dateAdded?: string; // For UserCustom
-    isPublic?: boolean; // For UserCustom
+    isPublic: boolean; // For UserCustom
 
     // Collection status (calculated server-side for current user)
     isInUserCollection?: boolean;
@@ -37,7 +37,7 @@ export interface UserPuzzle extends Puzzle {
     lastCompletedDate?: string;
 }
 
-// Used for puzzles created by users
+// Used creating puzzles in the user's collection (only UserCustom type)
 export interface UserCustomPuzzle {
     nameEnglish: string;
     nameLocal?: string;
@@ -49,10 +49,6 @@ export interface UserCustomPuzzle {
     seriesName?: string;
     illustratorName?: string;
     isPublic: boolean;
-}
-
-export interface UpdateUserCustomPuzzle extends UserCustomPuzzle {
-    userPuzzleId: number;
 }
 
 // For params to filter and sort puzzles in the global library

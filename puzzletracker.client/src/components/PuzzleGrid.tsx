@@ -7,10 +7,11 @@ interface PuzzleGridProps {
     error: string | null;
     collectionIds: Set<number>;
     completedIds: Set<number>;
-    userPuzzleIds: Set<number>;
+    userPuzzleIds?: Set<number>;
     ownedIds: Set<number>;
     userLoggedIn: boolean;
     isCollection?: boolean;
+    onProfilePage?: boolean;
     onMarkCompleted: (puzzleId: number) => void;
     onMarkIncomplete: (puzzleId: number) => void;
     onToggleOwned: (puzzleId: number) => void;
@@ -29,6 +30,7 @@ const PuzzleGrid: React.FC<PuzzleGridProps> = ({
     userPuzzleIds,
     userLoggedIn,
     isCollection = false,
+    onProfilePage = false,
     onMarkCompleted,
     onMarkIncomplete,
     onToggleOwned,
@@ -51,7 +53,7 @@ const PuzzleGrid: React.FC<PuzzleGridProps> = ({
     return (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {puzzles.map((puzzle) => (
-                <PuzzleCard puzzle={puzzle} key={puzzle.puzzleId} isInCollection={collectionIds.has(puzzle.puzzleId)} isCompleted={completedIds.has(puzzle.puzzleId)} isOwned={ownedIds.has(puzzle.puzzleId)} isCustomPuzzle={userPuzzleIds.has(puzzle.puzzleId)} onMarkCompleted={onMarkCompleted} onMarkIncomplete={onMarkIncomplete} onToggleOwned={onToggleOwned} onAddToCollection={onAddToCollection} onRemoveFromCollection={onRemoveFromCollection} actionLoading={actionLoading} userLoggedIn={userLoggedIn} />
+                <PuzzleCard puzzle={puzzle} key={puzzle.puzzleId} isInCollection={collectionIds.has(puzzle.puzzleId)} isCompleted={completedIds.has(puzzle.puzzleId)} isOwned={ownedIds.has(puzzle.puzzleId)} isCustomPuzzle={userPuzzleIds?.has(puzzle.puzzleId)} onMarkCompleted={onMarkCompleted} onMarkIncomplete={onMarkIncomplete} onToggleOwned={onToggleOwned} onAddToCollection={onAddToCollection} onRemoveFromCollection={onRemoveFromCollection} actionLoading={actionLoading} userLoggedIn={userLoggedIn} onProfilePage={onProfilePage} />
             ))}
         </div>
     );

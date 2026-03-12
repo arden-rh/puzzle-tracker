@@ -64,7 +64,7 @@ const usePuzzles = () => {
             const errorMsg = err.response?.data?.message || err.message || `Error fetching puzzle with ID ${puzzleId}`;
             setError(errorMsg);
             console.error(`Error fetching puzzle with ID ${puzzleId}:`, err);
-            return null;
+            return undefined;
         } finally {
             setLoading(false);
         }

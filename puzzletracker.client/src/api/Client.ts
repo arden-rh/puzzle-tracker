@@ -5,7 +5,7 @@ import type { Brand } from '../types/dto/brand.types';
 import type { Illustrator } from '../types/dto/illustrator.types';
 import type { PaginatedResult } from '../types/dto/paginated-result.types';
 import type { Series } from '../types/dto/series.types';
-import type { UserPuzzle, Puzzle, UserCustomPuzzle, UpdateUserCustomPuzzle } from '../types/dto/puzzle.types';
+import type { UserPuzzle, Puzzle, UserCustomPuzzle } from '../types/dto/puzzle.types';
 import type { UserProfile, UpdateUserProfile } from '../types/dto/user-profile.types';
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:7110/api';
@@ -65,9 +65,11 @@ const UserPuzzles = {
     markAsCompleted: (puzzleId: number) => requests.post(`/user-puzzles/complete/${puzzleId}`, {}),
     markAsIncomplete: (puzzleId: number) => requests.post(`/user-puzzles/incomplete/${puzzleId}`, {}),
     toggleOwned: (puzzleId: number) => requests.post(`/user-puzzles/toggle-owned/${puzzleId}`, {}),
+    update: (puzzleId: number, updates: Partial<UserPuzzle>) => requests.put(`/user-puzzles/update/${puzzleId}`, updates),
     createCustom: (puzzle: UserCustomPuzzle) => requests.post('/user-puzzles/custom/create', puzzle),
-    updateCustom: (puzzleId: number, puzzle: UpdateUserCustomPuzzle) => requests.put(`/user-puzzles/custom/${puzzleId}`, puzzle),
-    delete: (puzzleId: number) => requests.delete(`/user-puzzles/remove/${puzzleId}`)
+    editCustom: (puzzleId: number, puzzle: UserCustomPuzzle) => requests.post(`/user-puzzles/custom/edit/${puzzleId}`, puzzle),
+    deleteCustom: (puzzleId: number) => requests.delete(`/user-puzzles/custom/delete/${puzzleId}`),
+    remove: (puzzleId: number) => requests.delete(`/user-puzzles/remove/${puzzleId}`)
 };
 
 const Illustrators = {

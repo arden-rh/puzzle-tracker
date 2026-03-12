@@ -11,6 +11,7 @@ import Profile from './pages/Profile';
 import ProfileCollection from './pages/ProfileCollection';
 import PuzzleDetails from './pages/PuzzleDetails';
 import Register from './pages/Register';
+import UpdateCollectionPuzzle from './pages/UpdateCollectionPuzzle';
 import UpdateProfile from './pages/UpdateProfile';
 
 // Context
@@ -33,8 +34,9 @@ const App = () => {
                             <Route index element={<Profile />} />
                             <Route path="collection" element={<ProfileCollection />} />
                             <Route path="collection/:id" element={<PuzzleDetails />} />
+                            <Route path="collection/:id/update" element={<UpdateCollectionPuzzle />} />
                             <Route path="add-puzzle" element={<AddCustomPuzzle />} />
-                            <Route path="edit-puzzle/:id" element={<EditCustomPuzzle />} />
+                            <Route path="collection/:id/edit" element={<EditCustomPuzzle />} />
                             <Route path="edit" element={<UpdateProfile />} />
                         </Route>
 

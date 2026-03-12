@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import type { Puzzle, UserPuzzle } from "../types/dto/puzzle.types";
 import Button from "./Button";
-
 interface PuzzleCardProps {
     puzzle: Puzzle | UserPuzzle;
     isInCollection: boolean;
@@ -9,6 +8,7 @@ interface PuzzleCardProps {
     isOwned: boolean;
     isCustomPuzzle?: boolean;
     userLoggedIn: boolean;
+    onProfilePage?: boolean;
     onMarkCompleted: (puzzleId: number) => void;
     onMarkIncomplete: (puzzleId: number) => void;
     onToggleOwned: (puzzleId: number) => void;
@@ -22,22 +22,26 @@ const PuzzleCard: React.FC<PuzzleCardProps> = ({
     isInCollection,
     isCompleted,
     isOwned,
+    userLoggedIn,
+    actionLoading,
+    isCustomPuzzle = false,
+    onProfilePage = false,
     onMarkCompleted,
     onMarkIncomplete,
     onToggleOwned,
     onAddToCollection,
-    onRemoveFromCollection,
-    userLoggedIn,
-    actionLoading,
-    isCustomPuzzle = false,
+    onRemoveFromCollection
 }) => {
 
     const navigate = useNavigate();
-
     const collectionAction = isInCollection ? onRemoveFromCollection : onAddToCollection;
 
+    const deleteCustomPuzzle = () => {
+
+    }
+
     return (
-        <div className={`relative w-full p-3 shadow rounded ${isInCollection ? 'bg-indigo-900/40' : 'bg-indigo-900/90'} flex flex-col gap-2 justify-between tracking-wide`}>
+        <div className={`relative w-full p-3 shadow rounded ${isInCollection ? 'bg-indigo-900/40' : 'bg-indigo-900/90'} hover:ring hover:ring-indigo-300 flex flex-col gap-2 justify-between tracking-wide`}>
             <p className="text-sm bg-indigo-700/40 rounded ring ring-indigo-500 p-1 pr-2 text-white font-medium absolute top-2 right-2"><span className="grayscale">🧩</span>{puzzle.numberOfPieces}</p>
             <div className="flex flex-col gap-0.5">
                 <h3 className="text-indigo-50 font-medium max-w-[65%]">{puzzle.nameEnglish}</h3>
@@ -117,26 +121,47 @@ const PuzzleCard: React.FC<PuzzleCardProps> = ({
                             )}
                         </>
                     )}
+                    {isInCollection && (
+                        <Button
+                            className="justify-self-start col-span-2"
+                            onClick={() => navigate(`/profile/collection/${puzzle.puzzleId}`)}
+                            theme="secondary"
+                            disabled={actionLoading}
+                        >
+                            Update information
+                        </Button>
+                    )}
                     {isCustomPuzzle && (
-                        <>
-                            <span className="text-[0.95rem]">Custom Puzzle:</span>
-                            <Button
-                                className="justify-self-start"
-                                onClick={() => navigate(`/puzzles/${puzzle.puzzleId}/edit`)}
-                                theme="secondary"
-                                disabled={actionLoading}
-                            >
-                                Edit
-                            </Button>
+                        <>                             
+                            <span className="text-[0.95rem] col-span-2">Custom Puzzle:</span>
+                            <span className="col-span-2 flex gap-2">
+                                <Button
+                                    className="justify-self-start"
+                                    onClick={() => navigate(`/profile/collection/${puzzle.puzzleId}/edit`)}
+                                    theme="secondary"
+                                    disabled={actionLoading}
+                                    >
+                                    Edit
+                                </Button>
+                                <Button
+                                    className="justify-self-start"
+                                    onClick={() => deleteCustomPuzzle()}
+                                    theme="secondary"
+                                    disabled={actionLoading}
+                                    >
+                                    Delete
+                                </Button>
+                            </span>
                         </>
                     )}
                 </div>
             </div>}
+
             <Button
                 className="mt-2 px-4 py-2 disabled:opacity-50"
                 theme="primary"
                 disabled={actionLoading}
-                onClick={() => navigate(`/puzzles/${puzzle.puzzleId}`)}
+                onClick={onProfilePage ? () => navigate(`/profile/collection/${puzzle.puzzleId}`) : () => navigate(`/puzzles/${puzzle.puzzleId}`)}
             >
                 View Details
             </Button>
