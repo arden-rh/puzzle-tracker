@@ -5,11 +5,23 @@ using PuzzleTracker.Server.Data;
 using PuzzleTracker.Server.Models;
 using PuzzleTracker.Server.Services;
 using System.Security.Claims;
+using Azure.Identity;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 
 // Set EPPlus license for non-commercial use (modern API)
 ExcelPackage.License.SetNonCommercialPersonal("PuzzleTracker");
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Azure Key Vault integration
+// When KeyVaultName is configured, secrets will be loaded from Azure Key Vault using DefaultAzureCredential
+// This supports multiple authentication methods: Managed Identity (Azure), Azure CLI (local dev), Visual Studio, etc.
+var keyVaultName = builder.Configuration["KeyVaultName"];
+if (!string.IsNullOrEmpty(keyVaultName))
+{
+    var keyVaultUri = new Uri($"https://{keyVaultName}.vault.azure.net/");
+    builder.Configuration.AddAzureKeyVault(keyVaultUri, new DefaultAzureCredential());
+}
 
 // Add services to the container.
 
