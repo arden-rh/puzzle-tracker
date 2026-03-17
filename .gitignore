@@ -426,3 +426,9 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Special for this project
+.azure-resources.env
+.azure-resources.ps1
+.azure-resources-*.env
+deploy-to-azure.ps1

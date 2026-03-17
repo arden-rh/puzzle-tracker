@@ -1,0 +1,44 @@
+# Visual Studio and IDE files (must exclude - files are locked when VS is open)
+**/.vs/
+**/.vscode/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+
+# Node modules (will be installed in container)
+**/node_modules/
+**/dist/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Azure and deployment scripts
+.azure/
+*.ps1
+*.md
+
+# Test and coverage
+**/TestResults/
+**/coverage/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -4,23 +4,20 @@ using OfficeOpenXml;
 using PuzzleTracker.Server.Data;
 using PuzzleTracker.Server.Models;
 using PuzzleTracker.Server.Services;
+using PuzzleTracker.Server.Configuration;
 using System.Security.Claims;
-using Azure.Identity;
-using Azure.Extensions.AspNetCore.Configuration.Secrets;
 
 // Set EPPlus license for non-commercial use (modern API)
 ExcelPackage.License.SetNonCommercialPersonal("PuzzleTracker");
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Azure Key Vault integration
-// When KeyVaultName is configured, secrets will be loaded from Azure Key Vault using DefaultAzureCredential
-// This supports multiple authentication methods: Managed Identity (Azure), Azure CLI (local dev), Visual Studio, etc.
+// Configure Azure Key Vault integration using helper class
+// Supports multiple authentication methods: Managed Identity, Azure CLI, Visual Studio, etc.
 var keyVaultName = builder.Configuration["KeyVaultName"];
 if (!string.IsNullOrEmpty(keyVaultName))
 {
-    var keyVaultUri = new Uri($"https://{keyVaultName}.vault.azure.net/");
-    builder.Configuration.AddAzureKeyVault(keyVaultUri, new DefaultAzureCredential());
+    AzureKeyVaultConfiguration.AddAzureKeyVault(builder, keyVaultName);
 }
 
 // Add services to the container.
@@ -81,15 +78,15 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
 });
 
+// Configure CORS with settings from configuration (supports multiple environments)
+var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() 
+    ?? new[] { "https://localhost:63257" }; // Fallback for development
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowClient", policy =>
     {
-        policy.WithOrigins(
-                "https://localhost:63257",  // React client
-                "https://localhost:7110",   // API HTTPS
-                "http://localhost:5081"     // API HTTP (for local testing)
-              )
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -101,26 +98,16 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Seed database in development - DISABLED FOR EXCEL IMPORT
-// if (app.Environment.IsDevelopment())
-// {
-//     using (var scope = app.Services.CreateScope())
-//     {
-//         var context = scope.ServiceProvider.GetRequiredService<PuzzleTrackerContext>();
-//         await DatabaseSeeder.SeedAsync(context);
-//     }
-// }
-
-// app.UseDefaultFiles();
-// app.MapStaticAssets();
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    var swaggerEndpoint = builder.Configuration["ApplicationSettings:SwaggerEndpoint"] ?? "/swagger/v1/swagger.json";
+    var swaggerTitle = builder.Configuration["ApplicationSettings:SwaggerTitle"] ?? "PuzzleTracker API v1";
+
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "PuzzleTracker API v1");
+        options.SwaggerEndpoint(swaggerEndpoint, swaggerTitle);
         options.RoutePrefix = "swagger";
     });
 }
