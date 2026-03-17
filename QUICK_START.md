@@ -1,6 +1,8 @@
-# 🚀 Quick Start: Deploy to Azure
+# 🚀 Quick Start: Deploy to Azure Container Apps
 
-This is a condensed guide to get your PuzzleTracker application running on Azure in under 30 minutes.
+This guide will get your PuzzleTracker application running on Azure Container Apps in under 30 minutes.
+
+**Why Container Apps?** No App Service Plan throttling, better for containerized workloads, and simpler scaling.
 
 ---
 
@@ -8,13 +10,15 @@ This is a condensed guide to get your PuzzleTracker application running on Azure
 
 - Azure subscription
 - Azure CLI installed ([Install here](https://docs.microsoft.com/cli/azure/install-azure-cli))
+- Docker Desktop installed and running
 - .NET 10.0 SDK installed
+- Visual Studio 2022+ (optional, for local development)
 
 ---
 
 ## Step 1: Login to Azure (2 minutes)
 
-```bash
+```powershell
 # Login
 az login
 
@@ -25,292 +29,295 @@ az account set --subscription "Your-Subscription-Name"
 
 ---
 
-## Step 2: Create Azure Resources (5 minutes)
+## Step 2: Create Configuration File (2 minutes)
 
-### Option A: Use Name Generator Script (Recommended)
+Create `.azure-resources.ps1` in your project root:
 
-**For Linux/Mac/Git Bash:**
-```bash
-# Run the name generator script
-chmod +x generate-azure-names.sh
-./generate-azure-names.sh
-
-# Load the generated variables
-source .azure-resources.env
-```
-
-**For Windows PowerShell:**
 ```powershell
-# Run the name generator script
-.\generate-azure-names.ps1
+# Azure Resource Configuration
+$env:RESOURCE_GROUP = "rg-puzzle-tracker"
+$env:LOCATION = "swedencentral"
+$env:KEY_VAULT_NAME = "kv-puzzle-XXXX"  # Replace XXXX with unique value
 
-# Variables are automatically set if you chose 'y'
+Write-Host "✅ Configuration loaded" -ForegroundColor Green
+Write-Host "  Resource Group: $env:RESOURCE_GROUP" -ForegroundColor Cyan
+Write-Host "  Location: $env:LOCATION" -ForegroundColor Cyan
+Write-Host "  Key Vault: $env:KEY_VAULT_NAME" -ForegroundColor Cyan
 ```
 
-### Option B: Manual Variable Setup
+**Create the Azure resources:**
 
-```bash
-# Set variables (customize these!)
-RESOURCE_GROUP="rg-puzzletracker"
-LOCATION="swedencentral"
-KEY_VAULT_NAME="kv-puzzle-$(openssl rand -hex 4)"  # Generates unique name
-SQL_SERVER_NAME="sql-puzzle-$(openssl rand -hex 4)"
-SQL_DB_NAME="PuzzleTrackerDB"
-APP_SERVICE_NAME="app-puzzle-$(openssl rand -hex 4)"
-SQL_ADMIN_USER="sqladmin"
-SQL_ADMIN_PASSWORD="P@ssw0rd$(openssl rand -hex 4)!"
+```powershell
+# Load configuration
+. .\.azure-resources.ps1
 
 # Create resource group
-az group create --name $RESOURCE_GROUP --location $LOCATION
+az group create --name $env:RESOURCE_GROUP --location $env:LOCATION
 
-# Create Key Vault
-az keyvault create \
-  --name $KEY_VAULT_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --location $LOCATION \
+# Create Key Vault with RBAC authorization
+az keyvault create `
+  --name $env:KEY_VAULT_NAME `
+  --resource-group $env:RESOURCE_GROUP `
+  --location $env:LOCATION `
   --enable-rbac-authorization true
 
+# Assign yourself Key Vault Administrator role (for setting secrets)
+$yourUserId = az ad signed-in-user show --query id --output tsv
+$keyVaultId = az keyvault show --name $env:KEY_VAULT_NAME --query id --output tsv
+
+az role assignment create `
+  --role "Key Vault Administrator" `
+  --assignee $yourUserId `
+  --scope $keyVaultId
+```
+
+---
+
+## Step 3: Deploy Container App (5 minutes)
+
+**Close Visual Studio** (it locks files that Docker needs)
+
+```powershell
+# Run the deployment script
+.\deploy-container-app.ps1
+```
+
+**What this script does:**
+- ✅ Registers required Azure resource providers
+- ✅ Creates Container Apps Environment
+- ✅ Builds your Docker image locally (React + .NET)
+- ✅ Creates Azure Container Registry (ACR)
+- ✅ Pushes image to ACR
+- ✅ Deploys Container App
+- ✅ Configures environment variables
+- ✅ Enables managed identity
+- ✅ Grants Key Vault access
+
+**After deployment completes**, you'll see:
+```
+==========================================
+✅ Deployment Complete!
+==========================================
+
+Your app is running at:
+https://puzzletracker-app1234.region.azurecontainerapps.io
+
+Container App: puzzletracker-app1234
+Environment: puzzletracker-env1234
+```
+
+**Note:** The app won't fully work yet - you need to set up the database (next steps).
+
+---
+
+## Step 4: Create SQL Server & Database (5 minutes)
+
+```powershell
+# Load configuration
+. .\.azure-resources.ps1
+
+# Generate unique SQL Server name
+$sqlServerName = "sql-puzzle-$(Get-Random -Minimum 1000 -Maximum 9999)"
+$sqlAdminUser = "sqladmin"
+$sqlAdminPassword = "P@ssw0rd$(Get-Random -Minimum 1000 -Maximum 9999)!"
+$sqlDatabaseName = "PuzzleTrackerDB"
+
+Write-Host "SQL Server: $sqlServerName" -ForegroundColor Cyan
+Write-Host "SQL Admin: $sqlAdminUser" -ForegroundColor Cyan
+Write-Host "⚠️  Save the password: $sqlAdminPassword" -ForegroundColor Yellow
+
 # Create SQL Server
-az sql server create \
-  --name $SQL_SERVER_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --location $LOCATION \
-  --admin-user $SQL_ADMIN_USER \
-  --admin-password $SQL_ADMIN_PASSWORD
+az sql server create `
+  --name $sqlServerName `
+  --resource-group $env:RESOURCE_GROUP `
+  --location $env:LOCATION `
+  --admin-user $sqlAdminUser `
+  --admin-password $sqlAdminPassword
 
 # Create SQL Database
-az sql db create \
-  --resource-group $RESOURCE_GROUP \
-  --server $SQL_SERVER_NAME \
-  --name $SQL_DB_NAME \
-  --service-objective S0
+az sql db create `
+  --resource-group $env:RESOURCE_GROUP `
+  --server $sqlServerName `
+  --name $sqlDatabaseName `
+  --service-objective S0 `
+  --backup-storage-redundancy Local
 
 # Allow Azure services to access SQL
-az sql server firewall-rule create \
-  --resource-group $RESOURCE_GROUP \
-  --server $SQL_SERVER_NAME \
-  --name AllowAzureServices \
-  --start-ip-address 0.0.0.0 \
+az sql server firewall-rule create `
+  --resource-group $env:RESOURCE_GROUP `
+  --server $sqlServerName `
+  --name AllowAzureServices `
+  --start-ip-address 0.0.0.0 `
   --end-ip-address 0.0.0.0
 
-# Create App Service Plan
-az appservice plan create \
-  --name plan-puzzletracker \
-  --resource-group $RESOURCE_GROUP \
-  --location $LOCATION \
-  --sku B1 \
-  --is-linux
-
-# Create Web App
-az webapp create \
-  --name $APP_SERVICE_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --plan plan-puzzletracker \
-  --runtime "DOTNET:10.0"
-
-echo "✅ Resources created successfully!"
-echo "App Service: https://$APP_SERVICE_NAME.azurewebsites.net"
+Write-Host "✅ SQL Server and Database created" -ForegroundColor Green
 ```
 
 ---
 
-## Step 3: Configure Managed Identity (3 minutes)
+## Step 5: Store Connection String in Key Vault (2 minutes)
 
-```bash
-# Enable managed identity
-az webapp identity assign \
-  --name $APP_SERVICE_NAME \
-  --resource-group $RESOURCE_GROUP
-
-# Get the managed identity ID
-PRINCIPAL_ID=$(az webapp identity show \
-  --name $APP_SERVICE_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --query principalId -o tsv)
-
-# Grant Key Vault access
-az role assignment create \
-  --role "Key Vault Secrets User" \
-  --assignee $PRINCIPAL_ID \
-  --scope "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.KeyVault/vaults/$KEY_VAULT_NAME"
-
-echo "✅ Managed Identity configured!"
-```
-
----
-
-## Step 4: Store Secrets in Key Vault (2 minutes)
-
-```bash
-# Create connection string for Azure SQL with Managed Identity
-CONNECTION_STRING="Server=tcp:$SQL_SERVER_NAME.database.windows.net,1433;Initial Catalog=$SQL_DB_NAME;Authentication=Active Directory Default;"
+```powershell
+# Create connection string with Managed Identity authentication
+$connectionString = "Server=tcp:$sqlServerName.database.windows.net,1433;Initial Catalog=$sqlDatabaseName;Authentication=Active Directory Default;"
 
 # Store in Key Vault
-az keyvault secret set \
-  --vault-name $KEY_VAULT_NAME \
-  --name "ConnectionStrings--DefaultConnection" \
-  --value "$CONNECTION_STRING"
+az keyvault secret set `
+  --vault-name $env:KEY_VAULT_NAME `
+  --name "ConnectionStrings--DefaultConnection" `
+  --value $connectionString
 
-echo "✅ Secrets stored in Key Vault!"
+Write-Host "✅ Connection string stored in Key Vault" -ForegroundColor Green
 ```
 
 ---
 
-## Step 5: Grant SQL Database Access to Managed Identity (3 minutes)
+## Step 6: Grant SQL Access to Container App (5 minutes)
 
-```bash
-# Get the App Service managed identity object ID
-MANAGED_IDENTITY_NAME=$APP_SERVICE_NAME
+```powershell
+# Load configuration
+. .\.azure-resources.ps1
 
-# Connect to your SQL database using Azure portal Query Editor or Azure Data Studio
-# Then run this SQL:
+# Get your Container App name
+$suffix = Get-Content .azure-suffix
+$containerAppName = "puzzletracker-app$suffix"
+
+Write-Host "Container App: $containerAppName" -ForegroundColor Cyan
+
+# If you don't have $sqlServerName from Step 4, retrieve it:
+if (-not $sqlServerName) {
+    $sqlServerName = az sql server list `
+        --resource-group $env:RESOURCE_GROUP `
+        --query "[0].name" `
+        --output tsv
+
+    Write-Host "SQL Server: $sqlServerName" -ForegroundColor Cyan
+}
+
+# Set yourself as Azure AD admin on SQL Server (required to create AD users)
+$yourUserId = az ad signed-in-user show --query id --output tsv
+$yourUserEmail = az ad signed-in-user show --query userPrincipalName --output tsv
+
+az sql server ad-admin create `
+  --resource-group $env:RESOURCE_GROUP `
+  --server-name $sqlServerName `
+  --display-name $yourUserEmail `
+  --object-id $yourUserId
+
+Write-Host "✅ Azure AD admin set: $yourUserEmail" -ForegroundColor Green
+Write-Host "⚠️  Wait 1-2 minutes for AD admin to propagate before continuing..." -ForegroundColor Yellow
 ```
 
-**Open Azure Portal → SQL Database → Query Editor**, login with SQL admin, and run:
+**Now grant SQL permissions:**
+
+1. **Open Azure Portal** → Navigate to your SQL Database
+2. **Query Editor** → Login with **Microsoft Entra authentication** (Azure AD):
+   - Click "Continue as [your-email]"
+   - **NOT** SQL authentication!
+3. **Run this SQL** (replace `####` with your actual suffix from above):
 
 ```sql
-CREATE USER [app-puzzle-XXXX] FROM EXTERNAL PROVIDER;
-ALTER ROLE db_datareader ADD MEMBER [app-puzzle-XXXX];
-ALTER ROLE db_datawriter ADD MEMBER [app-puzzle-XXXX];
-ALTER ROLE db_ddladmin ADD MEMBER [app-puzzle-XXXX];
+CREATE USER [puzzletracker-app####] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER [puzzletracker-app####];
+ALTER ROLE db_datawriter ADD MEMBER [puzzletracker-app####];
+ALTER ROLE db_ddladmin ADD MEMBER [puzzletracker-app####];
 GO
 ```
 
-> Replace `app-puzzle-XXXX` with your actual App Service name from `$APP_SERVICE_NAME`
-
----
-
-## Step 6: Configure App Service (2 minutes)
-
-```bash
-# Set Key Vault name
-az webapp config appsettings set \
-  --name $APP_SERVICE_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --settings \
-    KeyVaultName=$KEY_VAULT_NAME \
-    ASPNETCORE_ENVIRONMENT=Production \
-    CorsSettings__AllowedOrigins__0="https://$APP_SERVICE_NAME.azurewebsites.net"
-
-# Enable HTTPS only
-az webapp update \
-  --name $APP_SERVICE_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --https-only true
-
-echo "✅ App Service configured!"
+**Verification:**
+```sql
+-- Verify the user was created
+SELECT name, type_desc FROM sys.database_principals WHERE name LIKE 'puzzletracker-app%';
 ```
 
 ---
 
-## Step 7: Update Production Configuration File (2 minutes)
+## Step 7: Run Database Migrations (5 minutes)
 
-Update `PuzzleTracker.Server\appsettings.Production.json`:
+```powershell
+# Get your IP address (or use ipconfig)
+$myIp = (Invoke-WebRequest -Uri "https://api.ipify.org").Content
 
-```json
-{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Warning",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "KeyVaultName": "",
-  "ConnectionStrings": {
-    "DefaultConnection": ""
-  },
-  "CorsSettings": {
-    "AllowedOrigins": [
-      "https://YOUR-APP-SERVICE-NAME.azurewebsites.net"
-    ]
-  }
-}
-```
+# Allow your IP to access SQL temporarily
+az sql server firewall-rule create `
+  --resource-group $env:RESOURCE_GROUP `
+  --server $sqlServerName `
+  --name AllowMyIP `
+  --start-ip-address $myIp `
+  --end-ip-address $myIp
 
-> Replace `YOUR-APP-SERVICE-NAME` with the value from `$APP_SERVICE_NAME`
+# Update connection string for migrations (with SQL authentication)
+$migrationsConnectionString = "Server=tcp:$sqlServerName.database.windows.net,1433;Initial Catalog=$sqlDatabaseName;User ID=$sqlAdminUser;Password=$sqlAdminPassword;Encrypt=True;TrustServerCertificate=False;"
 
----
+# Set environment variable temporarily
+$env:ConnectionStrings__DefaultConnection = $migrationsConnectionString
 
-## Step 8: Deploy Application (5 minutes)
-
-### Option A: Visual Studio
-
-1. Right-click on `PuzzleTracker.Server` project
-2. Select **Publish**
-3. Choose **Azure → Azure App Service (Linux)**
-4. Select your subscription and app service
-5. Click **Publish**
-
-### Option B: Azure CLI
-
-```bash
-# Navigate to project directory
-cd PuzzleTracker.Server
-
-# Publish the app
-dotnet publish -c Release -o ./publish
-
-# Create deployment ZIP
-cd publish
-zip -r ../deploy.zip . # On Windows: Use Compress-Archive or 7-Zip
-cd ..
-
-# Deploy to App Service
-az webapp deployment source config-zip \
-  --name $APP_SERVICE_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --src deploy.zip
-
-echo "✅ Application deployed!"
-```
-
----
-
-## Step 9: Run Database Migrations (3 minutes)
-
-```bash
-# Update connection string temporarily for migrations
-az sql server firewall-rule create \
-  --resource-group $RESOURCE_GROUP \
-  --server $SQL_SERVER_NAME \
-  --name AllowMyIP \
-  --start-ip-address YOUR_IP_ADDRESS \
-  --end-ip-address YOUR_IP_ADDRESS
-
-# In your local terminal, run migrations
+# Run migrations
 cd PuzzleTracker.Server
 dotnet ef database update
+cd ..
 
-# Remove the firewall rule for security
-az sql server firewall-rule delete \
-  --resource-group $RESOURCE_GROUP \
-  --server $SQL_SERVER_NAME \
-  --name AllowMyIP
+# Remove your IP from firewall
+az sql server firewall-rule delete `
+  --resource-group $env:RESOURCE_GROUP `
+  --server $sqlServerName `
+  --name AllowMyIP `
+  --confirm
+
+Write-Host "✅ Database migrations completed" -ForegroundColor Green
 ```
-
-**Alternative:** Run migrations from Azure Cloud Shell with SQL authentication
 
 ---
 
-## Step 10: Verify Deployment (3 minutes)
+## Step 8: Restart Container App (1 minute)
 
-```bash
-# Open the app in browser
-az webapp browse --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP
+```powershell
+# Update the container app to force a restart and pick up the new connection string
+az containerapp update `
+  --name $containerAppName `
+  --resource-group $env:RESOURCE_GROUP
 
-# Check logs
-az webapp log tail --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP
+Write-Host "✅ Container App restarted" -ForegroundColor Green
 ```
 
-**What to look for in logs:**
+---
+
+## Step 9: Verify Deployment (3 minutes)
+
+```powershell
+# Get your app URL
+$appUrl = az containerapp show `
+  --name $containerAppName `
+  --resource-group $env:RESOURCE_GROUP `
+  --query properties.configuration.ingress.fqdn `
+  --output tsv
+
+Write-Host ""
+Write-Host "Your app is running at:" -ForegroundColor Cyan
+Write-Host "https://$appUrl" -ForegroundColor White
+
+# Open in browser
+Start-Process "https://$appUrl"
+```
+
+**Check the logs:**
+```powershell
+az containerapp logs show `
+  --name $containerAppName `
+  --resource-group $env:RESOURCE_GROUP `
+  --tail 100
+```
+
+**What to look for:**
 - ✅ `Azure Key Vault configured successfully: https://...`
+- ✅ Database connection successful
 - ✅ No authentication errors
 - ✅ Application started successfully
 
 **Test the API:**
-```bash
-# Replace with your app URL
-curl https://YOUR-APP.azurewebsites.net/api/brands
+```powershell
+# Test API endpoint
+Invoke-WebRequest -Uri "https://$appUrl/api/brands"
 ```
 
 ---
@@ -318,191 +325,181 @@ curl https://YOUR-APP.azurewebsites.net/api/brands
 ## 🎉 Success!
 
 Your application is now running on Azure with:
-- ✅ Azure Key Vault for secrets
+- ✅ Azure Container Apps (auto-scaling, pay-per-use)
+- ✅ Azure Container Registry (private Docker images)
+- ✅ Azure Key Vault for secrets (RBAC-based)
 - ✅ Managed Identity (no passwords in code)
 - ✅ Azure SQL Database
-- ✅ Secure HTTPS connections
-- ✅ Environment-based configuration
+- ✅ Containerized React + .NET app
 
-**Your App URL:** `https://YOUR-APP-SERVICE-NAME.azurewebsites.net`
+**Your App URL:** `https://[your-app-url].azurecontainerapps.io`
 
 ---
 
 ## 📊 View Your Resources
 
-```bash
+```powershell
 # List all resources
-az resource list --resource-group $RESOURCE_GROUP --output table
+az resource list --resource-group $env:RESOURCE_GROUP --output table
 
-# Get App Service URL
-echo "https://$APP_SERVICE_NAME.azurewebsites.net"
+# Get Container App details
+az containerapp show --name $containerAppName --resource-group $env:RESOURCE_GROUP
 
-# Get Key Vault name
-echo $KEY_VAULT_NAME
-
-# Get SQL Server name
-echo $SQL_SERVER_NAME
+# Get Container App logs
+az containerapp logs show --name $containerAppName --resource-group $env:RESOURCE_GROUP
 ```
 
 ---
 
 ## 🔧 Useful Commands
 
-### View Application Logs
-```bash
-az webapp log tail --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP
+### Update and Redeploy
+
+```powershell
+# Make code changes, then redeploy
+.\deploy-container-app.ps1
+
+# The script will:
+# - Rebuild the Docker image with your changes
+# - Push to ACR
+# - Update the Container App with the new image
+```
+
+### View Container App Logs (Live)
+```powershell
+az containerapp logs show `
+  --name $containerAppName `
+  --resource-group $env:RESOURCE_GROUP `
+  --follow
 ```
 
 ### Restart the App
-```bash
-az webapp restart --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP
+```powershell
+# Update to force a restart
+az containerapp update `
+  --name $containerAppName `
+  --resource-group $env:RESOURCE_GROUP
 ```
 
 ### Update a Secret
-```bash
-az keyvault secret set \
-  --vault-name $KEY_VAULT_NAME \
-  --name "ConnectionStrings--DefaultConnection" \
+```powershell
+# Update secret in Key Vault
+az keyvault secret set `
+  --vault-name $env:KEY_VAULT_NAME `
+  --name "ConnectionStrings--DefaultConnection" `
   --value "new-connection-string"
 
-# Restart app to pick up changes
-az webapp restart --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP
+# Update app to pick up changes (forces restart)
+az containerapp update `
+  --name $containerAppName `
+  --resource-group $env:RESOURCE_GROUP
 ```
 
-### View App Service Configuration
-```bash
-az webapp config appsettings list \
-  --name $APP_SERVICE_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --output table
+### Scale Container App
+```powershell
+# Set min/max replicas
+az containerapp update `
+  --name $containerAppName `
+  --resource-group $env:RESOURCE_GROUP `
+  --min-replicas 0 `
+  --max-replicas 5
+```
+
+### View Container App Environment Variables
+```powershell
+az containerapp show `
+  --name $containerAppName `
+  --resource-group $env:RESOURCE_GROUP `
+  --query properties.template.containers[0].env
 ```
 
 ---
 
 ## 🚨 Troubleshooting
 
-### Issue: "App Service Plan Create operation is throttled"
+### Issue: "Docker build failed"
 
-**Error Message:**
-```
-App Service Plan Create operation is throttled for subscription XXXXXXXX. 
-Please contact support if issue persists.
-```
-
-**Cause:** Azure is rate-limiting your subscription. This happens when creating/deleting resources too quickly.
-
-**Solution 1: Wait and Retry (Recommended)**
-```bash
-# Wait 5-10 minutes for throttle to clear
-echo "Waiting for Azure throttle to clear (5 minutes)..."
-sleep 300
-
-# Then retry the App Service Plan creation
-az appservice plan create \
-  --name $APP_SERVICE_PLAN \
-  --resource-group $RESOURCE_GROUP \
-  --location $LOCATION \
-  --sku B1 \
-  --is-linux
-```
-
-**Solution 2: Use Automated Deployment Script**
-```bash
-# These scripts include retry logic and delays
-chmod +x deploy-with-throttle-protection.sh
-./deploy-with-throttle-protection.sh
-
-# Or PowerShell:
-.\deploy-with-throttle-protection.ps1
-```
-
-**Solution 3: Check for Existing Plans**
-```bash
-# List existing plans in your resource group
-az appservice plan list \
-  --resource-group $RESOURCE_GROUP \
-  --output table
-
-# If one exists, use it:
-az webapp create \
-  --name $APP_SERVICE_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --plan <existing-plan-name> \
-  --runtime "DOTNET:10.0"
-```
-
-**Prevention:**
-- Add 3-5 second delays between Azure CLI commands
-- Don't delete and recreate resources in quick succession
-- Use the automated deployment scripts provided
-
-### Issue: "MissingSubscriptionRegistration" Error
-
-**Error Message:**
-```
-(MissingSubscriptionRegistration) The subscription is not registered to use namespace 'Microsoft.KeyVault'
-```
+**Error:** `Docker build failed. Make sure Docker Desktop is running.`
 
 **Solution:**
-```bash
-# Register the required resource provider
-az provider register --namespace Microsoft.KeyVault
+1. Start Docker Desktop
+2. Close Visual Studio (it locks files)
+3. Run `.\deploy-container-app.ps1` again
 
-# Check registration status (wait until it shows "Registered")
-az provider show --namespace Microsoft.KeyVault --query "registrationState" -o tsv
+### Issue: "Cannot access Key Vault"
 
-# Registration usually takes 1-2 minutes
-# Once "Registered", retry your command
-```
+**Check RBAC role assignment:**
+```powershell
+# Get Container App principal ID
+$principalId = az containerapp identity show `
+  --name $containerAppName `
+  --resource-group $env:RESOURCE_GROUP `
+  --query principalId `
+  --output tsv
 
-**For all providers at once:**
-```bash
-# Register all required providers
-az provider register --namespace Microsoft.KeyVault
-az provider register --namespace Microsoft.Sql  
-az provider register --namespace Microsoft.Web
-
-# Wait for all to complete
-echo "Waiting for registrations to complete..."
-az provider show --namespace Microsoft.KeyVault --query "registrationState"
-az provider show --namespace Microsoft.Sql --query "registrationState"
-az provider show --namespace Microsoft.Web --query "registrationState"
+# Verify role assignment
+az role assignment list `
+  --assignee $principalId `
+  --scope (az keyvault show --name $env:KEY_VAULT_NAME --query id --output tsv)
 ```
 
 ### Issue: "Cannot connect to SQL Database"
 
 **Check:**
-```bash
+```powershell
 # Verify firewall rules
-az sql server firewall-rule list \
-  --resource-group $RESOURCE_GROUP \
-  --server $SQL_SERVER_NAME
+az sql server firewall-rule list `
+  --resource-group $env:RESOURCE_GROUP `
+  --server $sqlServerName
 
-# Verify managed identity has SQL permissions
-# Connect to SQL and run: SELECT name FROM sys.database_principals WHERE type = 'E';
+# Verify managed identity SQL user exists
+# Connect to SQL Query Editor and run:
+# SELECT name FROM sys.database_principals WHERE type = 'E';
 ```
 
-### Issue: "Cannot access Key Vault"
+### Issue: "Container App stuck in 'Provisioning'"
 
-**Check:**
-```bash
-# Verify managed identity is assigned
-az webapp identity show --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP
+**Solution:**
+```powershell
+# Wait for environment to finish provisioning (up to 5 minutes)
+# The deploy script now handles this automatically
 
-# Verify role assignment
-az role assignment list \
-  --assignee $(az webapp identity show --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP --query principalId -o tsv)
+# If stuck, check provisioning state:
+az containerapp env show `
+  --name (Get-Content .azure-suffix | ForEach-Object { "puzzletracker-env$_" }) `
+  --resource-group $env:RESOURCE_GROUP `
+  --query "properties.provisioningState"
 ```
 
-### Issue: "CORS errors"
+### Issue: "MissingSubscriptionRegistration"
 
-**Fix:**
-```bash
-# Update CORS settings
-az webapp config appsettings set \
-  --name $APP_SERVICE_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --settings CorsSettings__AllowedOrigins__0="https://your-frontend-url.com"
+**Solution:**
+```powershell
+# The deploy script automatically registers these, but you can manually do it:
+az provider register --namespace Microsoft.App
+az provider register --namespace Microsoft.ContainerRegistry
+az provider register --namespace Microsoft.OperationalInsights
+
+# Wait for registration (1-2 minutes)
+az provider show --namespace Microsoft.App --query "registrationState"
+```
+
+### Issue: "ACR Tasks not permitted"
+
+**This is expected!** The deployment script builds locally instead of using ACR Tasks. Make sure:
+- Docker Desktop is running
+- Visual Studio is closed
+- Run `.\deploy-container-app.ps1`
+
+### Issue: Container App shows old version
+
+**Solution:**
+```powershell
+# Force new image pull
+az containerapp update `
+  --name $containerAppName `
+  --resource-group $env:RESOURCE_GROUP `
+  --force-update
 ```
 
 ---
@@ -511,32 +508,55 @@ az webapp config appsettings set \
 
 To delete all resources and avoid charges:
 
-```bash
-# Delete the entire resource group
-az group delete --name $RESOURCE_GROUP --yes --no-wait
+```powershell
+# Load configuration
+. .\.azure-resources.ps1
 
-echo "✅ All resources deleted"
+# Delete the entire resource group
+az group delete --name $env:RESOURCE_GROUP --yes --no-wait
+
+# Clean up local files
+Remove-Item .azure-suffix -ErrorAction SilentlyContinue
+
+Write-Host "✅ All resources deleted" -ForegroundColor Green
 ```
 
 ---
 
 ## 📚 Next Steps
 
-- [ ] Configure custom domain
-- [ ] Set up SSL certificate
-- [ ] Add Application Insights for monitoring
-- [ ] Configure autoscaling
-- [ ] Set up deployment slots (staging/production)
-- [ ] Configure backup and disaster recovery
-- [ ] Set up CI/CD with GitHub Actions
+- [ ] Configure custom domain for Container App
+- [ ] Set up Application Insights for monitoring
+- [ ] Configure GitHub Actions for CI/CD
+- [ ] Set up deployment slots (blue/green deployments)
+- [ ] Configure auto-scaling rules
+- [ ] Add Azure Front Door for global distribution
+- [ ] Set up backup and disaster recovery for SQL
 
-**For detailed guides, see:**
-- `AZURE_DEPLOYMENT_GUIDE.md` - Complete deployment documentation
-- `AZURE_CONFIGURATION_EXAMPLES.md` - Code examples and patterns
+**Useful Resources:**
+- [Azure Container Apps Documentation](https://learn.microsoft.com/azure/container-apps/)
+- [Container Apps pricing](https://azure.microsoft.com/pricing/details/container-apps/)
 - `MIGRATION_SUMMARY.md` - What was changed and why
+- `deploy-container-app.ps1` - Deployment script source
 
 ---
 
-**Estimated Total Time: 30 minutes** ⏱️  
-**Difficulty: Beginner** 🟢  
-**Cost: ~$10-20/month** (B1 App Service + S0 SQL Database) 💰
+## 💰 Cost Estimate
+
+**Monthly costs (approximate):**
+- Container Apps: $5-15/month (consumption-based, scales to zero)
+- Azure Container Registry (Basic): $5/month
+- Azure SQL Database (S0): $15/month
+- Key Vault: $0.03/10,000 operations
+- **Total: ~$25-35/month**
+
+**Cost optimization tips:**
+- Set `--min-replicas 0` to scale to zero when idle
+- Use Azure SQL Database serverless tier for dev/test
+- Use GitHub Container Registry instead of ACR for public projects
+
+---
+
+**Estimated Total Time: 25-30 minutes** ⏱️  
+**Difficulty: Intermediate** 🟡 (Docker knowledge helpful)  
+**Cost: ~$25-35/month** 💰

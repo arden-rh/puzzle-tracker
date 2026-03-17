@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Client from "../api/Client";
+import { getErrorMessage } from "../api/errors";
 import type { UserPuzzle } from "../types/dto/puzzle.types";
-
 
 const useUserPuzzles = () => {
     const [loading, setLoading] = useState(false);
@@ -30,9 +30,8 @@ const useUserPuzzles = () => {
             setPageSize(result.pageSize);
             return result.items;
 
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || "Error fetching user puzzles";
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, "Error fetching user puzzles"));
             console.error("Error fetching user puzzles:", err);
             return [];
         } finally {
@@ -48,9 +47,8 @@ const useUserPuzzles = () => {
         try {
             const userPuzzle = await Client.UserPuzzles.getById(puzzleId);
             return userPuzzle;
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error fetching user puzzle with ID ${puzzleId}`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, `Error fetching user puzzle with ID ${puzzleId}`));
         } finally {
             setLoading(false);
         }
@@ -65,9 +63,8 @@ const useUserPuzzles = () => {
             await Client.UserPuzzles.addToCollection(puzzleId);
             if (options?.markOwned === false) await Client.UserPuzzles.toggleOwned(puzzleId);
             if (options?.markCompleted) await Client.UserPuzzles.markAsCompleted(puzzleId);
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error adding puzzle with ID ${puzzleId} to collection`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, `Error adding puzzle with ID ${puzzleId} to collection`));
         } finally {
             setLoading(false);
         }
@@ -81,9 +78,8 @@ const useUserPuzzles = () => {
         try {
             const isInCollection = await Client.UserPuzzles.isInCollection(puzzleId);
             return isInCollection;
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error checking if puzzle with ID ${puzzleId} is in collection`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, `Error checking if puzzle with ID ${puzzleId} is in collection`));
             return false;
         } finally {
             setLoading(false);
@@ -100,9 +96,8 @@ const useUserPuzzles = () => {
             if (!inCollection) await Client.UserPuzzles.addToCollection(puzzleId);
             await Client.UserPuzzles.markAsCompleted(puzzleId);
             await getAllUserPuzzles();
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error marking puzzle with ID ${puzzleId} as completed`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, `Error marking puzzle with ID ${puzzleId} as completed`));
         } finally {
             setLoading(false);
         }
@@ -116,9 +111,8 @@ const useUserPuzzles = () => {
         try {
             await Client.UserPuzzles.markAsIncomplete(puzzleId);
             await getAllUserPuzzles(); // Refresh the list after marking as incomplete
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error marking puzzle with ID ${puzzleId} as incomplete`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, `Error marking puzzle with ID ${puzzleId} as incomplete`));
         } finally {
             setLoading(false);
         }
@@ -134,9 +128,8 @@ const useUserPuzzles = () => {
             if (!inCollection) await Client.UserPuzzles.addToCollection(puzzleId);
             await Client.UserPuzzles.toggleOwned(puzzleId);
             await getAllUserPuzzles();
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error toggling owned status for puzzle with ID ${puzzleId}`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, `Error toggling owned status for puzzle with ID ${puzzleId}`));
         } finally {
             setLoading(false);
         }
@@ -150,9 +143,8 @@ const useUserPuzzles = () => {
         try {
             await Client.UserPuzzles.update(puzzleId, updates);
             await getAllUserPuzzles(); // Refresh the list after updating
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error updating user puzzle with ID ${puzzleId}`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, `Error updating user puzzle with ID ${puzzleId}`));
             throw err;
         } finally {
             setLoading(false);
@@ -167,9 +159,8 @@ const useUserPuzzles = () => {
         try {
             await Client.UserPuzzles.remove(puzzleId);
             await getAllUserPuzzles(); // Refresh the list after removing
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error removing puzzle with ID ${puzzleId} from collection`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, `Error removing puzzle with ID ${puzzleId} from collection`));
             throw err;
         } finally {
             setLoading(false);

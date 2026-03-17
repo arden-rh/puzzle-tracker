@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Client from "../api/Client";
+import { getErrorMessage } from "../api/errors";
 import type { Series } from "../types/dto/series.types";
 
 const useSeries = () => {
@@ -15,9 +16,8 @@ const useSeries = () => {
             const fetchedSeries = await Client.Series.getAll();
             setSeries(fetchedSeries);
             return fetchedSeries;
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || "Error fetching series";
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, "Error fetching series"));
             console.error("Error fetching series:", err);
             return [];
         } finally {

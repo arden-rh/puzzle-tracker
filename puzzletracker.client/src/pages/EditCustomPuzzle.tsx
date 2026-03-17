@@ -11,6 +11,7 @@ import useBrands from "../hooks/useBrands";
 // Components
 import Button from "../components/Button";
 import ButtonLink from "../components/ButtonLink";
+import { getErrorMessage } from "../api/errors";
 
 const labelClass = "uppercase font-poppins tracking-wider block mb-1 text-indigo-300";
 const inputClass = "rounded ring ring-indigo-300 px-2 py-1 w-full bg-transparent text-white";
@@ -91,8 +92,8 @@ const EditCustomPuzzle = () => {
                     navigate("/profile/collection");
                 }, 3000);
             })
-            .catch((error) => {
-                setError("Failed to update puzzle. Please try again.");
+            .catch((err: unknown) => {
+                setError(getErrorMessage(err, "Failed to update puzzle. Please try again."));
                 setLoading(false);
             });
     }
@@ -118,8 +119,8 @@ const EditCustomPuzzle = () => {
             if (fetchedPuzzle.illustratorName) setIllustratorName(fetchedPuzzle.illustratorName);
             if (fetchedPuzzle.nameLocal) setNameLocal(fetchedPuzzle.nameLocal);
             if (fetchedPuzzle.localLanguage) setLocalLanguage(fetchedPuzzle.localLanguage);
-        } catch (error) {
-            setError("Failed to fetch puzzle details. Please try again.");
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, "Failed to fetch puzzle details. Please try again."));
         } finally {
             setLoading(false);
         }

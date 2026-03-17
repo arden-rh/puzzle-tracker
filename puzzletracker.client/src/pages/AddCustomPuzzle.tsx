@@ -9,6 +9,7 @@ import useCustomPuzzles from "../hooks/useCustomPuzzles";
 import useBrands from "../hooks/useBrands";
 import Button from "../components/Button";
 import ButtonLink from "../components/ButtonLink";
+import { getErrorMessage } from "../api/errors";
 
 const labelClass = "uppercase font-poppins tracking-wider block mb-1 text-indigo-300";
 const inputClass = "rounded ring ring-indigo-300 px-2 py-1 w-full bg-transparent text-white";
@@ -84,8 +85,8 @@ const AddCustomPuzzle = () => {
                     navigate("/profile/collection");
                 }, 3000);
             })
-            .catch((error) => {
-                setError("Failed to add puzzle. Please try again.");
+            .catch((error: unknown) => {
+                setError(getErrorMessage(error, "Failed to add puzzle. Please try again."));
                 setLoading(false);
             });
     }

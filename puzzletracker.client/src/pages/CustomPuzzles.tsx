@@ -12,7 +12,7 @@ import RemoveFromCollectionModal from "../components/modals/RemoveFromCollection
 
 const CustomPuzzles = () => {
 
-    const { getAllUserPuzzles, markPuzzleAsCompleted, markPuzzleAsIncomplete, removePuzzleFromCollection, userPuzzles, loading, error, totalCount, currentPage, totalPages, pageSize } = useUserPuzzles();
+    const { getAllUserPuzzles, markPuzzleAsCompleted, markPuzzleAsIncomplete, removePuzzleFromCollection, userPuzzles, loading, error } = useUserPuzzles();
     const { getAllCustomPuzzles, customPuzzles } = useCustomPuzzles();
 
     const handleMarkCompleted = async (puzzleId: number) => {

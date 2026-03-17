@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Checkbox, Field, Label } from "@headlessui/react";
+import { getErrorMessage } from "../api/errors";
 // Types
 import type { UserPuzzle } from "../types/dto/puzzle.types";
 // Hooks
@@ -59,8 +60,9 @@ const UpdateCollectionPuzzle = () => {
                     navigate("/profile/collection");
                 }, 3000);
             })
-            .catch((error) => {
-                setError("Failed to update puzzle. Please try again.");
+            .catch((error: unknown) => {
+                const errorMsg = getErrorMessage(error, "Failed to update puzzle. Please try again.");
+                setError(errorMsg);
                 setLoading(false);
             });
     }
@@ -81,8 +83,9 @@ const UpdateCollectionPuzzle = () => {
             setCompleted(fetchedPuzzle.isCompleted);
             if (fetchedPuzzle.timesCompleted) setTimesCompleted(fetchedPuzzle.timesCompleted);
             if (fetchedPuzzle.lastCompletedDate) setLastCompletedDate(fetchedPuzzle.lastCompletedDate);
-        } catch (error) {
-            setError("Failed to fetch puzzle details. Please try again.");
+        } catch (error: unknown) {
+            const errorMsg = getErrorMessage(error, "Failed to fetch puzzle details. Please try again.");
+            setError(errorMsg);
         } finally {
             setLoading(false);
         }

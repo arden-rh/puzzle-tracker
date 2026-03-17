@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Client from "../api/Client";
+import { getErrorMessage } from "../api/errors";
 import type { Illustrator } from "../types/dto/illustrator.types";
 
 const useIllustrators = () => {
@@ -15,9 +16,8 @@ const useIllustrators = () => {
             const fetchedIllustrators = await Client.Illustrators.getAll();
             setIllustrators(fetchedIllustrators);
             return fetchedIllustrators;
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || "Error fetching illustrators";
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, "Error fetching illustrators"));
             console.error("Error fetching illustrators:", err);
             return [];
         } finally {

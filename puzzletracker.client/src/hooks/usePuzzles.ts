@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Client from "../api/Client";
+import { getErrorMessage } from "../api/errors";
 import type { Puzzle, PuzzleFilters } from "../types/dto/puzzle.types";
 
 const usePuzzles = () => {
@@ -42,9 +43,8 @@ const usePuzzles = () => {
             setTotalPages(result.totalPages);
             setPageSize(result.pageSize);
             return result.items;
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || "Error fetching puzzles";
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, "Error fetching puzzles"));
             console.error("Error fetching puzzles:", err);
             return [];
         } finally {
@@ -60,9 +60,8 @@ const usePuzzles = () => {
             const puzzle = await Client.Puzzles.getById(puzzleId);
             setSelectedPuzzle(puzzle);
             return puzzle;
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error fetching puzzle with ID ${puzzleId}`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, `Error fetching puzzle with ID ${puzzleId}`));
             console.error(`Error fetching puzzle with ID ${puzzleId}:`, err);
             return undefined;
         } finally {

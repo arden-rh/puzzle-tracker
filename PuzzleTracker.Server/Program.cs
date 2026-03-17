@@ -79,8 +79,16 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 // Configure CORS with settings from configuration (supports multiple environments)
-var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() 
-    ?? new[] { "https://localhost:63257" }; // Fallback for development
+var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>();
+
+// In production, CORS origins MUST be configured
+if (!builder.Environment.IsDevelopment() && (allowedOrigins == null || allowedOrigins.Length == 0))
+{
+    throw new InvalidOperationException("CORS origins must be configured in production. Set CorsSettings:AllowedOrigins in configuration.");
+}
+
+// Fallback to localhost for development only
+allowedOrigins ??= new[] { "https://localhost:63257" };
 
 builder.Services.AddCors(options =>
 {
@@ -98,9 +106,17 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Serve static files from wwwroot (React build output) - needed in all environments
+app.UseStaticFiles();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // Development-only middleware
+    app.UseDeveloperExceptionPage();
+    app.UseHttpsRedirection(); // Container Apps handles HTTPS in production
+
+    // Swagger
     var swaggerEndpoint = builder.Configuration["ApplicationSettings:SwaggerEndpoint"] ?? "/swagger/v1/swagger.json";
     var swaggerTitle = builder.Configuration["ApplicationSettings:SwaggerTitle"] ?? "PuzzleTracker API v1";
 
@@ -111,24 +127,18 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = "swagger";
     });
 }
-
-app.UseHttpsRedirection();
+else
+{
+    // Production-only middleware
+    app.UseExceptionHandler("/error");
+    app.UseHsts();
+}
 
 // Routing must be before CORS in .NET 6+
 app.UseRouting();
 
 // CORS must be after routing and before authentication!
 app.UseCors("AllowClient");
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
-else
-{
-    app.UseExceptionHandler("/error");
-    app.UseHsts();
-}
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -156,5 +166,8 @@ app.MapGet("/pingauth", (ClaimsPrincipal user) =>
 
 // Map controller endpoints
 app.MapControllers().RequireCors("AllowClient");
+
+// Fallback route for SPA - serve index.html for any non-API routes
+app.MapFallbackToFile("index.html");
 
 app.Run();

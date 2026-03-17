@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Client from "../api/Client";
+import { getErrorMessage } from "../api/errors";
 import type { Brand } from "../types/dto/brand.types";
 
 const useBrands = () => {
@@ -15,9 +16,8 @@ const useBrands = () => {
             const fetchedBrands = await Client.Brands.getAll();
             setBrands(fetchedBrands);
             return fetchedBrands;
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || "Error fetching brands";
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, "Error fetching brands"));
             console.error("Error fetching brands:", err);
             return [];
         } finally {

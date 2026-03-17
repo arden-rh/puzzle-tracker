@@ -1,5 +1,4 @@
 import Button from "../Button";
-import ButtonLink from "../ButtonLink";
 
 interface StatusSectionProps {
     puzzleId: number;

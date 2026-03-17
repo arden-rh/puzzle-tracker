@@ -432,3 +432,8 @@ FodyWeavers.xsd
 .azure-resources.ps1
 .azure-resources-*.env
 deploy-to-azure.ps1
+
+# Azure deployment files
+.azure-suffix
+.azure-resources.ps1
+

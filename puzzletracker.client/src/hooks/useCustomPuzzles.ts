@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { UserCustomPuzzle, UserPuzzle } from "../types/dto/puzzle.types";
 
 import Client from "../api/Client";
+import { getErrorMessage } from "../api/errors";
 import useUserPuzzles from "./useUserPuzzles";
 
 const useCustomPuzzles = () => {
@@ -20,9 +21,8 @@ const useCustomPuzzles = () => {
             const result = await Client.CustomPuzzles.getAll();
             setCustomPuzzles(result);
             return result;
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error fetching custom puzzles`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, "Error fetching custom puzzles"));
             setLoading(false);
             return [];
         } finally {
@@ -39,9 +39,8 @@ const useCustomPuzzles = () => {
             await Client.CustomPuzzles.createCustom(puzzle);
             await getAllUserPuzzles(); 
             await getAllCustomPuzzles(); 
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error creating custom puzzle`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, "Error creating custom puzzle"));
             throw err;
         } finally {
             setLoading(false);
@@ -57,9 +56,8 @@ const useCustomPuzzles = () => {
             await Client.CustomPuzzles.editCustom(puzzleId, puzzle);
             await getAllUserPuzzles(); 
             await getAllCustomPuzzles(); 
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error editing custom puzzle`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, "Error editing custom puzzle"));
             throw err;
         } finally {
             setLoading(false);
@@ -75,9 +73,8 @@ const useCustomPuzzles = () => {
             await Client.CustomPuzzles.deleteCustom(puzzleId);
             await getAllUserPuzzles();
             await getAllCustomPuzzles(); 
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error deleting custom puzzle`;
-            setError(errorMsg);
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, "Error deleting custom puzzle"));
             throw err;
         } finally {
             setLoading(false);

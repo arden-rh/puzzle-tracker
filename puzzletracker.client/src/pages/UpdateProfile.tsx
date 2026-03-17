@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getErrorMessage } from '../api/errors';
 import useUser from '../hooks/useUser';
 import Button from '../components/Button';
 
@@ -25,8 +26,8 @@ const UpdateProfile: React.FC = () => {
             setMessage('✅ Profile updated successfully!');
             // Redirect to profile after successful update
             setTimeout(() => navigate('/profile'), 1000);
-        } catch (error: any) {
-            const errorMsg = error.response?.data?.message || error.message || 'Profile update failed';
+        } catch (error: unknown) {
+            const errorMsg = getErrorMessage(error, 'Profile update failed');
             setMessage(`❌ ${errorMsg}`);
         } finally {
             setIsLoading(false);

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { getErrorMessage } from '../api/errors';
 import useUser from '../hooks/useUser';
 import Button from '../components/Button';
 
@@ -21,8 +22,8 @@ const Login: React.FC = () => {
             setMessage('✅ Login successful!');
             // Redirect to home or profile after successful login
             setTimeout(() => navigate('/'), 1000);
-        } catch (error: any) {
-            const errorMsg = error.response?.data?.message || error.message || 'Login failed';
+        } catch (error: unknown) {
+            const errorMsg = getErrorMessage(error, 'Login failed');
             setMessage(`❌ ${errorMsg}`);
         } finally {
             setIsLoading(false);
@@ -70,7 +71,7 @@ const Login: React.FC = () => {
                     </div>
                 )}
             </div>
-            <p className="mt-4 text-sm">Don't have an account? <button onClick={() => navigate('/register')} className="text-indigo-300 hover:underline">Register here</button></p>
+            <p className="mt-4 text-sm">Don't have an account? <Link to="/register" className="text-indigo-300 hover:underline">Register here</Link></p>
         </div>
     );
 }

@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { useState, useEffect, createContext } from "react";
 import Client from "../api/Client";
+import { getErrorMessage } from "../api/errors";
 import type { UserProfile, UpdateUserProfile } from "../types/dto/user-profile.types";
 
 interface UserContextValues {
@@ -28,8 +29,8 @@ export const UserProvider: React.FC<UserContextProps> = ({ children }) => {
         try {
             const profile = await Client.Account.currentUserProfile();
             setUser(profile);
-        } catch (error) {
-            console.error("Error fetching user profile:", error);
+        } catch (error: unknown) {
+            console.error("Error fetching user profile:", getErrorMessage(error, "Unknown error"));
             setUser(null);
         }
     };
@@ -68,10 +69,8 @@ export const UserProvider: React.FC<UserContextProps> = ({ children }) => {
             try {
                 const profile = await Client.Account.currentUserProfile();
                 setUser(profile);
-            } catch (error: any) {
-                console.error("Error fetching user profile:", error);
-                console.error("Error response:", error.response);
-                console.error("Error status:", error.response?.status);
+            } catch (error: unknown) {
+                console.error("Error fetching user profile:", getErrorMessage(error, "Unknown error"));
                 setUser(null);
             } finally {
                 setLoading(false);

@@ -8,7 +8,6 @@ interface PuzzleListElProps {
     isCompleted: boolean;
     isOwned?: boolean;
     userLoggedIn: boolean;
-    isCollection?: boolean;
     onMarkCompleted: (puzzleId: number) => void;
     onMarkIncomplete: (puzzleId: number) => void;
     onToggleOwned?: (puzzleId: number) => void;
@@ -29,7 +28,6 @@ const PuzzleListEl: React.FC<PuzzleListElProps> = ({
     onRemoveFromCollection,
     actionLoading,
     userLoggedIn,
-    isCollection = false,
 }) => {
 
     const collectionAction = isInCollection ? onRemoveFromCollection : onAddToCollection;

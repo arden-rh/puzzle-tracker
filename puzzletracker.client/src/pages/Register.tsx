@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getErrorMessage } from '../api/errors';
 import useUser from '../hooks/useUser';
 import Button from '../components/Button';
 
@@ -54,8 +55,8 @@ const Register: React.FC = () => {
             setMessage('✅ Registration successful!');
             // Redirect to home after successful registration
             setTimeout(() => navigate('/'), 1000);
-        } catch (error: any) {
-            const errorMsg = error.response?.data?.message || error.message || 'Registration failed';
+        } catch (error: unknown) {
+            const errorMsg = getErrorMessage(error, 'Registration failed');
             setMessage(`❌ ${errorMsg}`);
         } finally {
             setIsLoading(false);

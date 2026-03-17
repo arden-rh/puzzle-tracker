@@ -25,7 +25,6 @@ const PuzzleList: React.FC<PuzzleListProps> = ({
     collectionIds,
     completedIds,
     ownedIds,
-    isCollection = false,
     userLoggedIn,
     onMarkCompleted,
     onMarkIncomplete,
@@ -42,7 +41,7 @@ const PuzzleList: React.FC<PuzzleListProps> = ({
             {puzzles.length === 0 && <div className="w-full flex items-center justify-center text-center"><span>No puzzles found matching the criteria.</span></div>}
             <ul className="flex flex-col gap-4">
                 {puzzles.map((puzzle) => (
-                    <PuzzleListEl puzzle={puzzle} key={puzzle.puzzleId} isInCollection={collectionIds?.has(puzzle.puzzleId)} isCompleted={completedIds.has(puzzle.puzzleId)} isOwned={ownedIds?.has(puzzle.puzzleId)} onMarkCompleted={onMarkCompleted} onMarkIncomplete={onMarkIncomplete} onToggleOwned={onToggleOwned} onAddToCollection={onAddToCollection} onRemoveFromCollection={onRemoveFromCollection} actionLoading={actionLoading} userLoggedIn={userLoggedIn} isCollection={isCollection} />
+                    <PuzzleListEl puzzle={puzzle} key={puzzle.puzzleId} isInCollection={collectionIds?.has(puzzle.puzzleId)} isCompleted={completedIds.has(puzzle.puzzleId)} isOwned={ownedIds?.has(puzzle.puzzleId)} onMarkCompleted={onMarkCompleted} onMarkIncomplete={onMarkIncomplete} onToggleOwned={onToggleOwned} onAddToCollection={onAddToCollection} onRemoveFromCollection={onRemoveFromCollection} actionLoading={actionLoading} userLoggedIn={userLoggedIn} />
                 ))}
             </ul>
         </div>

@@ -12,15 +12,18 @@ if (Test-Path .\.azure-resources.ps1) {
 Write-Host "===========================================" -ForegroundColor Cyan
 Write-Host "Deploy Using Azure Container Apps" -ForegroundColor Cyan
 Write-Host "===========================================" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "⚠️  Using Container Apps instead of App Service" -ForegroundColor Yellow
-Write-Host "   This avoids the App Service Plan throttle!" -ForegroundColor Yellow
-Write-Host ""
 
-# Generate or use existing suffix
-if (-not $env:RANDOM_SUFFIX) {
+# Generate or use existing suffix (persist to file to avoid creating duplicate resources)
+$suffixFile = ".azure-suffix"
+if (Test-Path $suffixFile) {
+    $env:RANDOM_SUFFIX = Get-Content $suffixFile
+    Write-Host "Using existing suffix from $suffixFile`: $env:RANDOM_SUFFIX" -ForegroundColor Cyan
+} elseif (-not $env:RANDOM_SUFFIX) {
     $env:RANDOM_SUFFIX = Get-Random -Minimum 1000 -Maximum 9999
-    Write-Host "Generated random suffix: $env:RANDOM_SUFFIX" -ForegroundColor Yellow
+    $env:RANDOM_SUFFIX | Out-File -FilePath $suffixFile -NoNewline
+    Write-Host "Generated random suffix: $env:RANDOM_SUFFIX (saved to $suffixFile)" -ForegroundColor Yellow
+} else {
+    Write-Host "Using suffix from environment: $env:RANDOM_SUFFIX" -ForegroundColor Cyan
 }
 
 # Container App Environment name (must be valid DNS name)
@@ -59,10 +62,36 @@ try {
     # Step 1: Check and create Container Apps Environment
     Write-Host "Step 1: Checking Container Apps Environment..." -ForegroundColor Cyan
 
-    $existingEnv = az containerapp env show --name $containerEnvName --resource-group $env:RESOURCE_GROUP 2>$null
+    $existingEnv = az containerapp env show --name $containerEnvName --resource-group $env:RESOURCE_GROUP --query "properties.provisioningState" --output tsv 2>$null
 
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "✅ Environment already exists" -ForegroundColor Green
+        Write-Host "✅ Environment exists with state: $existingEnv" -ForegroundColor Green
+
+        # If environment is in a bad state, we need to wait or use a new name
+        if ($existingEnv -eq "Deleting") {
+            Write-Host "⚠️  Environment is being deleted. Generating new name..." -ForegroundColor Yellow
+            $env:RANDOM_SUFFIX = Get-Random -Minimum 1000 -Maximum 9999
+            $env:RANDOM_SUFFIX | Out-File -FilePath $suffixFile -NoNewline
+            $containerEnvName = "puzzletracker-env$env:RANDOM_SUFFIX"
+            $containerAppName = "puzzletracker-app$env:RANDOM_SUFFIX"
+            Write-Host "New names: $containerEnvName / $containerAppName" -ForegroundColor Cyan
+
+            # Now create the new environment
+            Write-Host "Creating new environment..." -ForegroundColor Yellow
+            az containerapp env create `
+                --name $containerEnvName `
+                --resource-group $env:RESOURCE_GROUP `
+                --location $env:LOCATION `
+                --output none
+
+            if ($LASTEXITCODE -ne 0) {
+                throw "Failed to create Container Apps Environment"
+            }
+            Write-Host "✅ Environment created" -ForegroundColor Green
+        } elseif ($existingEnv -eq "Failed") {
+            throw "Environment is in Failed state. Please delete it manually from Azure Portal and try again."
+        }
+        # If Succeeded or other valid state, we'll use it
     } else {
         Write-Host "Creating new environment..." -ForegroundColor Yellow
 
@@ -89,6 +118,7 @@ try {
                 if ($retryCount -lt $maxRetries) {
                     Write-Host "⚠️  Environment may be deleting. Generating new name..." -ForegroundColor Yellow
                     $env:RANDOM_SUFFIX = Get-Random -Minimum 1000 -Maximum 9999
+                    $env:RANDOM_SUFFIX | Out-File -FilePath $suffixFile -NoNewline
                     $containerEnvName = "puzzletracker-env$env:RANDOM_SUFFIX"
                     $containerAppName = "puzzletracker-app$env:RANDOM_SUFFIX"
                     Write-Host "New names: $containerEnvName / $containerAppName" -ForegroundColor Cyan
@@ -98,6 +128,35 @@ try {
                 }
             }
         }
+    }
+
+    # Wait for environment to be fully provisioned
+    Write-Host "Waiting for environment to be fully provisioned..." -ForegroundColor Yellow
+    $maxWaitSeconds = 300  # 5 minutes
+    $waitInterval = 10
+    $totalWaited = 0
+
+    while ($totalWaited -lt $maxWaitSeconds) {
+        $provisioningState = az containerapp env show `
+            --name $containerEnvName `
+            --resource-group $env:RESOURCE_GROUP `
+            --query "properties.provisioningState" `
+            --output tsv 2>$null
+
+        if ($provisioningState -eq "Succeeded") {
+            Write-Host "✅ Environment is ready" -ForegroundColor Green
+            break
+        } elseif ($provisioningState -eq "Failed") {
+            throw "Environment provisioning failed"
+        } else {
+            Write-Host "  Provisioning state: $provisioningState (waiting...)" -ForegroundColor DarkGray
+            Start-Sleep -Seconds $waitInterval
+            $totalWaited += $waitInterval
+        }
+    }
+
+    if ($totalWaited -ge $maxWaitSeconds) {
+        throw "Environment provisioning timeout after $maxWaitSeconds seconds"
     }
 
     # Step 2: Verify Docker files exist
@@ -139,29 +198,121 @@ try {
     }
     Write-Host ""
 
-    # Step 3: Deploy Container App
+    # Step 3: Build Docker image locally
     Write-Host ""
-    Write-Host "Step 3: Deploying Container App (building in Azure)..." -ForegroundColor Cyan
+    Write-Host "Step 3: Building Docker image locally..." -ForegroundColor Cyan
+    Write-Host "(Building on your machine - ACR Tasks not available)" -ForegroundColor DarkYellow
 
-    # Option 1: Deploy from local code (simpler, no registry needed)
-    az containerapp up `
-        --name $containerAppName `
-        --resource-group $env:RESOURCE_GROUP `
-        --environment $containerEnvName `
-        --location $env:LOCATION `
-        --source . `
-        --ingress external `
-        --target-port 8080
+    $imageName = "puzzletracker"
+    $imageTag = "latest"
+
+    Write-Host "Building image: $imageName`:$imageTag" -ForegroundColor Yellow
+    docker build -t $imageName`:$imageTag .
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Docker build failed. Make sure Docker Desktop is running."
+    }
+    Write-Host "✅ Image built successfully" -ForegroundColor Green
+
+    # Step 4: Create Azure Container Registry
+    Write-Host ""
+    Write-Host "Step 4: Setting up Azure Container Registry..." -ForegroundColor Cyan
+
+    $acrName = "puzzletracker$env:RANDOM_SUFFIX"
+
+    # Check if ACR exists
+    $existingAcr = az acr show --name $acrName --resource-group $env:RESOURCE_GROUP 2>$null
 
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "✅ Container App created" -ForegroundColor Green
+        Write-Host "✅ ACR already exists: $acrName" -ForegroundColor Green
     } else {
-        throw "Failed to create Container App"
+        Write-Host "Creating ACR: $acrName..." -ForegroundColor Yellow
+        az acr create `
+            --name $acrName `
+            --resource-group $env:RESOURCE_GROUP `
+            --location $env:LOCATION `
+            --sku Basic `
+            --admin-enabled true `
+            --output none
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to create Azure Container Registry"
+        }
+        Write-Host "✅ ACR created" -ForegroundColor Green
     }
 
-    # Step 4: Configure environment variables
+    # Get ACR login server
+    $acrLoginServer = az acr show --name $acrName --resource-group $env:RESOURCE_GROUP --query loginServer --output tsv
+    Write-Host "ACR Login Server: $acrLoginServer" -ForegroundColor Cyan
+
+    # Step 5: Push image to ACR
     Write-Host ""
-    Write-Host "Step 4: Configuring environment variables..." -ForegroundColor Cyan
+    Write-Host "Step 5: Pushing image to Azure Container Registry..." -ForegroundColor Cyan
+
+    # Login to ACR
+    Write-Host "Logging into ACR..." -ForegroundColor Yellow
+    az acr login --name $acrName
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to login to ACR"
+    }
+
+    # Tag image for ACR
+    $acrImageName = "$acrLoginServer/$imageName`:$imageTag"
+    Write-Host "Tagging image: $acrImageName" -ForegroundColor Yellow
+    docker tag $imageName`:$imageTag $acrImageName
+
+    # Push to ACR
+    Write-Host "Pushing image to ACR (this may take a few minutes)..." -ForegroundColor Yellow
+    docker push $acrImageName
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to push image to ACR"
+    }
+    Write-Host "✅ Image pushed to ACR" -ForegroundColor Green
+
+    # Step 6: Deploy Container App from ACR image
+    Write-Host ""
+    Write-Host "Step 6: Deploying Container App from ACR image..." -ForegroundColor Cyan
+
+    # Get ACR credentials
+    $acrUsername = az acr credential show --name $acrName --query username --output tsv
+    $acrPassword = az acr credential show --name $acrName --query "passwords[0].value" --output tsv
+
+    # Check if container app already exists
+    $existingApp = az containerapp show --name $containerAppName --resource-group $env:RESOURCE_GROUP 2>$null
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Updating existing container app..." -ForegroundColor Yellow
+        az containerapp update `
+            --name $containerAppName `
+            --resource-group $env:RESOURCE_GROUP `
+            --image $acrImageName `
+            --output none
+    } else {
+        Write-Host "Creating new container app..." -ForegroundColor Yellow
+        az containerapp create `
+            --name $containerAppName `
+            --resource-group $env:RESOURCE_GROUP `
+            --environment $containerEnvName `
+            --image $acrImageName `
+            --registry-server $acrLoginServer `
+            --registry-username $acrUsername `
+            --registry-password $acrPassword `
+            --ingress external `
+            --target-port 8080 `
+            --output none
+    }
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "✅ Container App deployed" -ForegroundColor Green
+    } else {
+        throw "Failed to deploy Container App"
+    }
+
+    # Step 7: Configure environment variables
+    Write-Host ""
+    Write-Host "Step 7: Configuring environment variables..." -ForegroundColor Cyan
     
     # Get Key Vault URI
     $keyVaultUri = "https://$env:KEY_VAULT_NAME.vault.azure.net/"
@@ -193,12 +344,35 @@ try {
     # Step 9: Grant Key Vault access
     Write-Host ""
     Write-Host "Step 9: Granting Key Vault access..." -ForegroundColor Cyan
-    
-    az keyvault set-policy `
-        --name $env:KEY_VAULT_NAME `
-        --object-id $principalId `
-        --secret-permissions get list `
-        --output none
+
+    # Check if Key Vault uses RBAC or Access Policies
+    $rbacEnabled = az keyvault show --name $env:KEY_VAULT_NAME --query "properties.enableRbacAuthorization" --output tsv
+
+    if ($rbacEnabled -eq "true") {
+        Write-Host "Key Vault uses RBAC authorization - assigning role..." -ForegroundColor Yellow
+
+        # Get Key Vault resource ID
+        $keyVaultId = az keyvault show --name $env:KEY_VAULT_NAME --query id --output tsv
+
+        # Assign "Key Vault Secrets User" role
+        az role assignment create `
+            --role "Key Vault Secrets User" `
+            --assignee $principalId `
+            --scope $keyVaultId `
+            --output none
+
+        Write-Host "✅ RBAC role assigned" -ForegroundColor Green
+    } else {
+        Write-Host "Key Vault uses Access Policies - setting policy..." -ForegroundColor Yellow
+
+        az keyvault set-policy `
+            --name $env:KEY_VAULT_NAME `
+            --object-id $principalId `
+            --secret-permissions get list `
+            --output none
+
+        Write-Host "✅ Access policy set" -ForegroundColor Green
+    }
 
     # Get the URL
     $appUrl = az containerapp show `

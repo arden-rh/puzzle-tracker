@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation } from "react-router";
+import { getErrorMessage } from "../api/errors";
 // Types
 import type { Puzzle, UserPuzzle } from "../types/dto/puzzle.types";
 // Hooks
@@ -40,8 +41,8 @@ const PuzzleDetails = () => {
                 const fetchedPuzzle = await getPuzzleById(Number(puzzleId));
                 setPuzzle(fetchedPuzzle);
             }
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.message || err.message || `Error fetching puzzle details for ID ${puzzleId}`;
+        } catch (err: unknown) {
+            const errorMsg = getErrorMessage(err, `Error fetching puzzle details for ID ${puzzleId}`);
             setError(errorMsg);
         } finally {
             setLoading(false);
