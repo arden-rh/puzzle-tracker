@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Checkbox, Field, Label, Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
+import { Checkbox, Field, Label, Select } from "@headlessui/react";
 
 // Types
 import type { UserCustomPuzzle } from "../types/dto/puzzle.types";
@@ -145,22 +145,16 @@ const EditCustomPuzzle = () => {
                     {brands && brands.length > 0 && (
                         <div className="flex flex-col gap-1 mb-1">
                             <span className="uppercase text-sm font-poppins tracking-wider text-indigo-200">Pick an existing brand</span>
-                            <Listbox value={brandName} onChange={setBrandName}>
-                                <ListboxButton className="relative rounded ring ring-indigo-300 px-2 py-1 w-full text-left bg-transparent text-white">
-                                    {brandName || <span className="text-indigo-400">Select a brand</span>}
-                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-indigo-300">▾</span>
-                                </ListboxButton>
-                                <ListboxOptions anchor="bottom" className="w-[var(--button-width)] rounded border border-indigo-500 bg-indigo-950 text-white shadow-lg mt-1 z-10 overflow-auto max-h-48">
-                                    <ListboxOption value="" className="px-3 py-1.5 text-indigo-400 cursor-pointer data-[focus]:bg-indigo-800">
-                                        Select a brand
-                                    </ListboxOption>
-                                    {brands.map((brand) => (
-                                        <ListboxOption key={brand.id} value={brand.name} className="px-3 py-1.5 cursor-pointer data-[focus]:bg-indigo-800 data-[selected]:text-indigo-300 data-[selected]:font-medium">
-                                            {brand.name}
-                                        </ListboxOption>
-                                    ))}
-                                </ListboxOptions>
-                            </Listbox>
+                            <Select
+                                value={brandName}
+                                onChange={(e) => setBrandName(e.target.value)}
+                                className="rounded ring ring-indigo-300 px-2 py-1 w-full bg-transparent text-white cursor-pointer"
+                            >
+                                <option value="">Select a brand</option>
+                                {brands.map((brand) => (
+                                    <option key={brand.id} value={brand.name}>{brand.name}</option>
+                                ))}
+                            </Select>
                             <span className="uppercase text-sm font-poppins tracking-wider text-indigo-200">or enter your own</span>
                         </div>
                     )}

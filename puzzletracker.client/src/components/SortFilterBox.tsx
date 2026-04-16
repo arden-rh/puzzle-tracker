@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Checkbox, Field, Fieldset, Label, Legend, Radio, RadioGroup, Select } from "@headlessui/react";
 import type { PuzzleFilters } from "../types/dto/puzzle.types";
 import type { Series } from "../types/dto/series.types";
 
@@ -13,6 +14,11 @@ interface SortFilterBoxProps {
 
 const getSeriesBrands = (series: Series[]): string[] =>
     [...new Set(series.map((s) => s.brandName))];
+
+
+
+const checkboxClass = "group size-4 rounded border border-indigo-300 flex items-center justify-center data-[checked]:bg-indigo-600 data-[checked]:border-indigo-600 cursor-pointer flex-shrink-0";
+const radioClass = "group size-4 rounded-full border border-indigo-300 flex items-center justify-center data-[checked]:border-indigo-400 cursor-pointer flex-shrink-0";
 
 const SortFilterBox: React.FC<SortFilterBoxProps> = ({ listOfSeries, listOfBrands, listOfIllustrators, onApplyFilters }) => {
 
@@ -91,14 +97,12 @@ const SortFilterBox: React.FC<SortFilterBoxProps> = ({ listOfSeries, listOfBrand
 
     return (
         <div className="flex flex-col gap-4 items-start justify-start w-full bg-indigo-800/70 rounded p-4 shadow-md mb-4">
-            <div>
-                <h3 className="mr-2 inline">Sort by:</h3>
-                <select
-                    id="sort"
-                    name="sort"
-                    className="ring ring-indigo-300 rounded px-2 py-1 bg-indigo-900 text-indigo-50"
+            <Field className="flex items-center gap-2">
+                <Label className="font-medium">Sort by:</Label>
+                <Select
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value)}
+                    className="rounded ring ring-indigo-300 px-2 py-1 bg-indigo-900 text-indigo-50 cursor-pointer data-[focus]:ring-indigo-200"
                 >
                     <option value="dateDesc">Date (Newest to Oldest)</option>
                     <option value="dateAsc">Date (Oldest to Newest)</option>
@@ -106,243 +110,155 @@ const SortFilterBox: React.FC<SortFilterBoxProps> = ({ listOfSeries, listOfBrand
                     <option value="nameDesc">Name (Z-A)</option>
                     <option value="piecesAsc">Number of Pieces (Low to High)</option>
                     <option value="piecesDesc">Number of Pieces (High to Low)</option>
-                </select>
-            </div>
+                </Select>
+            </Field>
             <form onSubmit={handleApply} onReset={handleReset} className="w-full text-sm">
                 <h3 className="text-base mb-2">Filter by:</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 lg:grid-cols-3">
                     <div className="bg-indigo-950/50 rounded p-2 md:p-3">
-                        <fieldset className="grid grid-cols-2 gap-1 sm:gap-2 w-full md:w-auto lg:w-full">
-                            <legend className="font-medium mb-1">Puzzle Type</legend>
-                            <span>
-                                <input
-                                    type="radio"
-                                    name="puzzle-type"
-                                    id="all-puzzles"
-                                    value="all"
-                                    checked={puzzleType === "all"}
-                                    onChange={(e) => setPuzzleType(e.target.value)}
-                                />
-                                <label htmlFor="all-puzzles" className="ml-2">All Puzzles</label>
-                            </span>
-                            <span>
-                                <input
-                                    type="radio"
-                                    name="puzzle-type"
-                                    id="official-puzzle"
-                                    value="official-p"
-                                    checked={puzzleType === "official-p"}
-                                    onChange={(e) => setPuzzleType(e.target.value)}
-                                />
-                                <label htmlFor="official-puzzle" className="ml-2">Official Puzzles</label>
-                            </span>
-                            <span>
-                                <input
-                                    type="radio"
-                                    name="puzzle-type"
-                                    id="user-puzzle"
-                                    value="user-p"
-                                    checked={puzzleType === "user-p"}
-                                    onChange={(e) => setPuzzleType(e.target.value)}
-                                />
-                                <label htmlFor="user-puzzle" className="ml-2">User Puzzles</label>
-                            </span>
-                        </fieldset>
+                        <Fieldset className="flex flex-col">
+                            <Legend className="font-medium mb-1">Puzzle Type</Legend>
+                            <RadioGroup value={puzzleType} onChange={setPuzzleType} className="grid grid-cols-2 gap-1 sm:gap-2 w-full md:w-auto lg:w-full">
+                                <Field className="flex items-center gap-2">
+                                    <Radio value="all" className={radioClass}>
+                                        <span className="hidden group-data-[checked]:block size-2 rounded-full bg-indigo-400" />
+                                    </Radio>
+                                    <Label className="cursor-pointer">All Puzzles</Label>
+                                </Field>
+                                <Field className="flex items-center gap-2">
+                                    <Radio value="official-p" className={radioClass}>
+                                        <span className="hidden group-data-[checked]:block size-2 rounded-full bg-indigo-400" />
+                                    </Radio>
+                                    <Label className="cursor-pointer">Official Puzzles</Label>
+                                </Field>
+                                <Field className="flex items-center gap-2">
+                                    <Radio value="user-p" className={radioClass}>
+                                        <span className="hidden group-data-[checked]:block size-2 rounded-full bg-indigo-400" />
+                                    </Radio>
+                                    <Label className="cursor-pointer">User Puzzles</Label>
+                                </Field>
+                            </RadioGroup>
+                        </Fieldset>
                     </div>
                     <div className="bg-indigo-950/50 rounded p-2 md:p-3">
-
-                        <fieldset>
-                            <legend className="font-medium mb-1">Number of Pieces</legend>
+                        <Fieldset>
+                            <Legend className="font-medium mb-1">Number of Pieces</Legend>
                             <div className="grid grid-cols-2 gap-1">
-                                <span>
-                                    <input
-                                        type="checkbox"
-                                        id="0-100"
-                                        name="pieces"
-                                        value="0-100"
-                                        checked={pieceRanges.includes("0-100")}
-                                        onChange={(e) => handlePieceRangeChange("0-100", e.target.checked)}
-                                    />
-                                    <label htmlFor="0-100" className="ml-2">0-100</label>
-                                </span>
-                                <span>
-                                    <input
-                                        type="checkbox"
-                                        id="100-500"
-                                        name="pieces"
-                                        value="100-500"
-                                        checked={pieceRanges.includes("100-500")}
-                                        onChange={(e) => handlePieceRangeChange("100-500", e.target.checked)}
-                                    />
-                                    <label htmlFor="100-500" className="ml-2">100-500</label>
-                                </span>
-                                <span>
-                                    <input
-                                        type="checkbox"
-                                        id="500-1000"
-                                        name="pieces"
-                                        value="500-1000"
-                                        checked={pieceRanges.includes("500-1000")}
-                                        onChange={(e) => handlePieceRangeChange("500-1000", e.target.checked)}
-                                    />
-                                    <label htmlFor="500-1000" className="ml-2">500-1000</label>
-                                </span>
-                                <span>
-                                    <input
-                                        type="checkbox"
-                                        id="1000-3000"
-                                        name="pieces"
-                                        value="1000-3000"
-                                        checked={pieceRanges.includes("1000-3000")}
-                                        onChange={(e) => handlePieceRangeChange("1000-3000", e.target.checked)}
-                                    />
-                                    <label htmlFor="1000-3000" className="ml-2">1000-3000</label>
-                                </span>
-                                <span>
-                                    <input
-                                        type="checkbox"
-                                        id="3000+"
-                                        name="pieces"
-                                        value="3000+"
-                                        checked={pieceRanges.includes("3000+")}
-                                        onChange={(e) => handlePieceRangeChange("3000+", e.target.checked)}
-                                    />
-                                    <label htmlFor="3000+" className="ml-2">3000+</label>
-                                </span>
-                                <span>
-                                    <input
-                                        type="checkbox"
-                                        id="combo-box"
-                                        name="pieces"
-                                        value="combo-box"
-                                        checked={pieceRanges.includes("combo-box")}
-                                        onChange={(e) => handlePieceRangeChange("combo-box", e.target.checked)}
-                                    />
-                                    <label htmlFor="combo-box" className="ml-2">Combo box</label>
-                                </span>
-                            </div>
-                        </fieldset>
-                    </div>
-                    <div className="bg-indigo-950/50 rounded p-2 md:p-3">
-
-                        <fieldset>
-                            <legend className="font-medium mb-1">Collection Status</legend>
-                            <div className="grid grid-cols-2 gap-1">
-                                <span>
-                                    <input
-                                        type="checkbox"
-                                        id="in-collection"
-                                        name="in-collection"
-                                        value="in-collection"
-                                        checked={inCollection}
-                                        onChange={(e) => setInCollection(e.target.checked)}
-                                    />
-                                    <label htmlFor="in-collection" className="ml-2">In Collection</label>
-                                </span>
-                                <span>
-                                    <input
-                                        type="checkbox"
-                                        id="completed"
-                                        name="completed"
-                                        value="completed"
-                                        checked={isCompleted}
-                                        onChange={(e) => setIsCompleted(e.target.checked)}
-                                    />
-                                    <label htmlFor="completed" className="ml-2">Completed</label>
-                                </span>
-                                <span>
-                                    <input
-                                        type="checkbox"
-                                        id="owned"
-                                        name="owned"
-                                        value="owned"
-                                        checked={isOwned}
-                                        onChange={(e) => setIsOwned(e.target.checked)}
-                                    />
-                                    <label htmlFor="owned" className="ml-2">Owned</label>
-                                </span>
-                            </div>
-                        </fieldset>
-                    </div>
-                    <div className="bg-indigo-950/50 rounded p-2 md:p-3">
-
-                        <fieldset>
-                            <legend className="font-medium mb-1">Brand</legend>
-                            <div className="grid grid-cols-[repeat(2,max-content)] md:grid-cols-2 gap-1 gap-x-3">
-                                <span>
-                                    <input type="radio" id="all-brands" name="brand" value="all-brands" checked={selectedBrand === "all-brands"} onChange={() => setSelectedBrand("all-brands")} />
-                                    <label htmlFor="all-brands" className="ml-2">All Brands</label>
-                                </span>
-                                {listOfBrands.map((brand, index) => (
-                                    <span key={index}>
-                                        <input type="radio" id={`brand-${brand}`} name="brand" value={brand} checked={selectedBrand === brand} onChange={() => setSelectedBrand(brand)} />
-                                        <label htmlFor={`brand-${brand}`} className="ml-2">{brand}</label>
-                                    </span>
+                                {(["0-100", "100-500", "500-1000", "1000-3000", "3000+", "combo-box"] as const).map((range) => (
+                                    <Field key={range} className="flex items-center gap-2">
+                                        <Checkbox
+                                            checked={pieceRanges.includes(range)}
+                                            onChange={(checked) => handlePieceRangeChange(range, checked)}
+                                            className={checkboxClass}
+                                        >
+                                            <span className="hidden group-data-[checked]:block text-white text-xs leading-none">✓</span>
+                                        </Checkbox>
+                                        <Label className="cursor-pointer">{range}</Label>
+                                    </Field>
                                 ))}
                             </div>
-                        </fieldset>
+                        </Fieldset>
+                    </div>
+                    <div className="bg-indigo-950/50 rounded p-2 md:p-3">
+                        <Fieldset>
+                            <Legend className="font-medium mb-1">Collection Status</Legend>
+                            <div className="grid grid-cols-2 gap-1">
+                                <Field className="flex items-center gap-2">
+                                    <Checkbox checked={inCollection} onChange={setInCollection} className={checkboxClass}>
+                                        <span className="hidden group-data-[checked]:block text-white text-xs leading-none">✓</span>
+                                    </Checkbox>
+                                    <Label className="cursor-pointer">In Collection</Label>
+                                </Field>
+                                <Field className="flex items-center gap-2">
+                                    <Checkbox checked={isCompleted} onChange={setIsCompleted} className={checkboxClass}>
+                                        <span className="hidden group-data-[checked]:block text-white text-xs leading-none">✓</span>
+                                    </Checkbox>
+                                    <Label className="cursor-pointer">Completed</Label>
+                                </Field>
+                                <Field className="flex items-center gap-2">
+                                    <Checkbox checked={isOwned} onChange={setIsOwned} className={checkboxClass}>
+                                        <span className="hidden group-data-[checked]:block text-white text-xs leading-none">✓</span>
+                                    </Checkbox>
+                                    <Label className="cursor-pointer">Owned</Label>
+                                </Field>
+                            </div>
+                        </Fieldset>
+                    </div>
+                    <div className="bg-indigo-950/50 rounded p-2 md:p-3">
+                        <Fieldset>
+                            <Legend className="font-medium mb-1">Brand</Legend>
+                            <RadioGroup value={selectedBrand} onChange={setSelectedBrand} className="grid grid-cols-[repeat(2,max-content)] md:grid-cols-2 gap-1 gap-x-3">
+                                <Field className="flex items-center gap-2">
+                                    <Radio value="all-brands" className={radioClass}>
+                                        <span className="hidden group-data-[checked]:block size-2 rounded-full bg-indigo-400" />
+                                    </Radio>
+                                    <Label className="cursor-pointer">All Brands</Label>
+                                </Field>
+                                {listOfBrands.map((brand, index) => (
+                                    <Field key={index} className="flex items-center gap-2">
+                                        <Radio value={brand} className={radioClass}>
+                                            <span className="hidden group-data-[checked]:block size-2 rounded-full bg-indigo-400" />
+                                        </Radio>
+                                        <Label className="cursor-pointer">{brand}</Label>
+                                    </Field>
+                                ))}
+                            </RadioGroup>
+                        </Fieldset>
                     </div>
                     {(selectedBrand === selectedSeriesBrand || selectedBrand === "all-brands") &&
                         <div className="bg-indigo-950/50 rounded p-2 md:p-3">
-                            <fieldset>
-                                <legend className="font-medium mb-1">Series</legend>
-                                <div className="flex gap-3 mb-2">
+                            <Fieldset>
+                                <Legend className="font-medium mb-1">Series</Legend>
+                                <RadioGroup value={selectedSeriesBrand} onChange={setSelectedSeriesBrand} className="flex gap-3 mb-2">
                                     {seriesBrands.map((b) => (
-                                        <span key={b}>
-                                            <input
-                                                type="radio"
-                                                id={`series-brand-${b}`}
-                                                name="series-brand"
-                                                value={b}
-                                                checked={selectedSeriesBrand === b}
-                                                onChange={() => setSelectedSeriesBrand(b)}
-                                            />
-                                            <label htmlFor={`series-brand-${b}`} className="ml-2 text-sm">{b}</label>
-                                        </span>
+                                        <Field key={b} className="flex items-center gap-2">
+                                            <Radio value={b} className={radioClass}>
+                                                <span className="hidden group-data-[checked]:block size-2 rounded-full bg-indigo-400" />
+                                            </Radio>
+                                            <Label className="cursor-pointer text-sm">{b}</Label>
+                                        </Field>
                                     ))}
-                                </div>
+                                </RadioGroup>
                                 {selectedSeriesBrand && filteredSeries.length > 0 && (
                                     <>
-                                        <label htmlFor="series">Select Series:</label>
+                                        <span className="block mb-1">Select Series:</span>
                                         <div className="grid grid-cols-[repeat(2,max-content)] md:grid-cols-2 gap-1 gap-x-3">
                                             {filteredSeries.map((series, index) => (
-                                                <span key={index}>
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`series-${series.name}`}
-                                                        name="series"
-                                                        value={series.name}
+                                                <Field key={index} className="flex items-center gap-2">
+                                                    <Checkbox
                                                         checked={selectedSeries.includes(series.name)}
-                                                        onChange={(e) => handleSeriesChange(series.name, e.target.checked)}
-                                                    />
-                                                    <label htmlFor={`series-${series.name}`} className="ml-2">{series.name}</label>
-                                                </span>
+                                                        onChange={(checked) => handleSeriesChange(series.name, checked)}
+                                                        className={checkboxClass}
+                                                    >
+                                                        <span className="hidden group-data-[checked]:block text-white text-xs leading-none">✓</span>
+                                                    </Checkbox>
+                                                    <Label className="cursor-pointer">{series.name}</Label>
+                                                </Field>
                                             ))}
                                         </div>
                                     </>
                                 )}
-                            </fieldset>
+                            </Fieldset>
                         </div>
                     }
                     <div className="bg-indigo-950/50 rounded p-2 md:p-3">
-                        <fieldset>
-                            <legend className="font-medium mb-1">Illustrators</legend>
+                        <Fieldset>
+                            <Legend className="font-medium mb-1">Illustrators</Legend>
                             <div className="grid grid-cols-[repeat(2,max-content)] lg:grid-cols-2 gap-1 gap-x-3">
                                 {listOfIllustrators.map((illustrator, index) => (
-                                    <span key={index}>
-                                        <input
-                                            type="checkbox"
-                                            id={`illustrator-${illustrator}`}
-                                            name="illustrators"
-                                            value={illustrator}
+                                    <Field key={index} className="flex items-center gap-2">
+                                        <Checkbox
                                             checked={selectedIllustrators.includes(illustrator)}
-                                            onChange={(e) => handleIllustratorChange(illustrator, e.target.checked)}
-                                        />
-                                        <label htmlFor={`illustrator-${illustrator}`} className="ml-2">{illustrator}</label>
-                                    </span>
+                                            onChange={(checked) => handleIllustratorChange(illustrator, checked)}
+                                            className={checkboxClass}
+                                        >
+                                            <span className="hidden group-data-[checked]:block text-white text-xs leading-none">✓</span>
+                                        </Checkbox>
+                                        <Label className="cursor-pointer">{illustrator}</Label>
+                                    </Field>
                                 ))}
                             </div>
-                        </fieldset>
+                        </Fieldset>
                     </div>
                 </div>
                 <span className="flex gap-2 mt-4">
